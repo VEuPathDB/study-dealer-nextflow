@@ -1,0 +1,8 @@
+studies:
+  - lee_gambian:
+      - hsapREF_Lee_Gambian_ebi_rnaSeq_RSRC
+      - pfal3D7_Lee_Gambian_ebi_rnaSeq_RSRC
+  - :
+      - strawberry
+      - raspberry
+      - blueberry
