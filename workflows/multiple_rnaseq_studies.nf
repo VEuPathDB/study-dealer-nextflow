@@ -4,6 +4,10 @@ nextflow.enable.dsl = 2
 
 import groovy.json.JsonSlurper
 
+include { single_rnaseq_study } from '../subworkflows/single_study'
+
+include { addOrganismPrefix } from '../modules/utils'
+
 def slurpJson(jsonFilePath) {
     def jsonSlurper = new JsonSlurper()
     def jsonArray = jsonSlurper.parse(new File(jsonFilePath))
@@ -20,9 +24,10 @@ def slurpJson(jsonFilePath) {
     return(rv)
 } 
 
-def addFileMetadata(file, datasetToStudyMap) {
+def addFileMetadataToCounts(file, datasetToStudyMap) {
 
-    def matcher = (file.toString() =~ /${params.inputDir}\/(.+?)\/(.+?)\/${params.mode}\/(.+?)\//)
+    // need to grab the datasetName and the organismAbbrev from the file path
+    def matcher = (file.toString() =~ /${params.workflowDataDir}\/(.+?)\/(.+?)\/${params.mode}\/(.+?)\//)
 
     def projectName = matcher[0][1];
     def organismAbbrev = matcher[0][2];
@@ -33,9 +38,9 @@ def addFileMetadata(file, datasetToStudyMap) {
         studyMetadata = datasetToStudyMap.get(datasetName)
     }
 
-    // return a Tuple of Meta object + the file
-    return [ [study:studyMetadata, projectName:projectName, organismAbbrev:organismAbbrev, datasetName:datasetName ], file ]
+    return [ studyMetadata, organismAbbrev, file ]
 }
+
 
 
 workflow multiple_rnaseq_studies {
@@ -43,18 +48,16 @@ workflow multiple_rnaseq_studies {
     main:
     datasetToStudyMap = slurpJson("${params.multiDatasetStudies}")
 
-    // Get all raw counts (mix ebi and  non ebi datasets)
-    countsFiles = Channel.fromPath(params.inputDir + "/*/*/" + params.mode + "/*/bulkrnaseq/analysisDir/analysis_output/countsForEda*")
-        .mix(Channel.fromPath(params.inputDir + "/*/*/" + params.mode + "/*/analysis_output/countsForEda*"))
-        .map { file -> addFileMetadata(file, datasetToStudyMap)}
+    // mix counts files and add to ai sample meta data;  group result by "study"
+    inputs = Channel.fromPath(params.filePatterns['ebiRnaSeqCounts'])
+        .mix(Channel.fromPath(params.filePatterns['rnaSeqCounts']))
+        .map { file -> addFileMetadataToCounts(file, datasetToStudyMap)}
+        .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
+             .map { file -> [ file.baseName, "SAMPLE_DETAILS", file ] })
 
 
-    // TODO:  make a channel for the AI generated metadata files
+    renamedAndGrouped = addOrganismPrefix(inputs).view()
+        .groupTuple(by:0)
 
-    // TODO:  join channels.  metadata for the counts should match the file names of the AI files
-    
-    countsFiles.view()
-    
-
-
+    single_rnaseq_study(renamedAndGrouped)
 }

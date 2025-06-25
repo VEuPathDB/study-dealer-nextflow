@@ -7,7 +7,7 @@ process wrangleSingleFileStudy {
     container "veupathdb/study-wrangler:latest"
 
     input:
-    tuple val(meta), path(dat)
+    path(dat)
     path(customWrangleScript)
 
     output:

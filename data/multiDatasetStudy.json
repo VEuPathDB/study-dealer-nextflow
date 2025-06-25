@@ -1,4 +1,3 @@
     [
-        {"study": "lee_gambian", "datasets": ["hsapREF_Lee_Gambian_ebi_rnaSeq_RSRC", "pfal3D7_Lee_Gambian_ebi_rnaSeq_RSRC"]},
-        {"study": "some_other_study", "datasets": ["ds_1", "ds_2"]}
+        {"study": "HPI_Lee_Gambian", "datasets": ["hsapREF_Lee_Gambian_ebi_rnaSeq_RSRC", "pfal3D7_Lee_Gambian_ebi_rnaSeq_RSRC"]}
     ]
