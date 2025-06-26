@@ -1,0 +1,9 @@
+sample.ID \\ Descriptors	label	time.window.end	time.window.start
+T5	40-5 hours post-invasion	5	40
+T10	2-10 hours post-invasion	10	2
+T15	7-15 hours post-invasion	15	7
+T20	12-20 hours post-invasion	20	12
+T25	17-25 hours post-invasion	25	17
+T30	22-30 hours post-invasion	30	22
+T35	27-35 hours post-invasion	35	27
+T40	32-40 hours post-invasion	40	32

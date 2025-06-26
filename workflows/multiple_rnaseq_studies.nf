@@ -56,7 +56,7 @@ workflow multiple_rnaseq_studies {
              .map { file -> [ file.baseName, "SAMPLE_DETAILS", file ] })
 
 
-    renamedAndGrouped = addOrganismPrefix(inputs).view()
+    renamedAndGrouped = addOrganismPrefix(inputs)
         .groupTuple(by:0)
 
     single_rnaseq_study(renamedAndGrouped)
