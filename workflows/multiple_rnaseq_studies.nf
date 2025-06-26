@@ -42,6 +42,16 @@ def addFileMetadataToCounts(file, datasetToStudyMap) {
 }
 
 
+def addFileMetadataSampleDetails(file) {
+
+    // need to grab the study/dataset from the directory name
+    def matcher = (file.toString() =~ /\/([^\/]+?)\/entity-sample.+/)
+
+    def studyOrDatasetDirName = matcher[0][1];
+
+    return [ studyOrDatasetDirName, "SAMPLE_DETAILS", file ]
+}
+
 
 workflow multiple_rnaseq_studies {
 
@@ -53,11 +63,11 @@ workflow multiple_rnaseq_studies {
         .mix(Channel.fromPath(params.filePatterns['rnaSeqCounts']))
         .map { file -> addFileMetadataToCounts(file, datasetToStudyMap)}
         .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
-             .map { file -> [ file.baseName, "SAMPLE_DETAILS", file ] })
+             .map { file -> addFileMetadataSampleDetails(file)  })
 
 
     renamedAndGrouped = addOrganismPrefix(inputs)
         .groupTuple(by:0)
 
     single_rnaseq_study(renamedAndGrouped)
-}
+ }
