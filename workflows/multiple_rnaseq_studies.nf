@@ -6,7 +6,7 @@ import groovy.json.JsonSlurper
 
 include { single_rnaseq_study } from '../subworkflows/single_study'
 
-include { addOrganismPrefix } from '../modules/utils'
+include { addOrganismPrefixAndFilterRows } from '../modules/utils'
 
 def slurpJson(jsonFilePath) {
     def jsonSlurper = new JsonSlurper()
@@ -66,7 +66,7 @@ workflow multiple_rnaseq_studies {
              .map { file -> addFileMetadataSampleDetails(file)  })
 
 
-    renamedAndGrouped = addOrganismPrefix(inputs)
+    renamedAndGrouped = addOrganismPrefixAndFilterRows(inputs)
         .groupTuple(by:0)
 
     single_rnaseq_study(renamedAndGrouped)

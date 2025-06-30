@@ -3,7 +3,7 @@
 nextflow.enable.dsl = 2
 
 
-process addOrganismPrefix {
+process addOrganismPrefixAndFilterRows {
     container "veupathdb/alpine_bash:latest"
 
     input:
@@ -15,7 +15,7 @@ process addOrganismPrefix {
     
     script:        
     """
-    ln -s $file ${orgAbbrev}_$file 
+    grep -v "^__" $file >${orgAbbrev}_$file 
     """
     
 }

@@ -1,33 +1,7 @@
-#!/usr/local/bin/Rscript#
-# reads in the tall counts file (one row per gene)
-# and flips it round to wide
-#
-
-
 #!/usr/local/bin/Rscript
 
-args <- commandArgs(trailingOnly = TRUE)
-
-library(tidyverse)
-library(study.wrangler)
-
-
-# Check if at least two arguments are provided
-if (length(args) < 1) {
-  stop("usage:  singleFileCustomWrangle.R custom.R")
-}
-
-wrangleScript <- args[1]
-
-source(wrangleScript)
-
-study = wrangle()
-
-
-# TODO:  will this stop if validation fails?
-validate(study)
-
-export_to_vdi(study, getwd());
+ library(tidyverse)
+ library(study.wrangler)
 
 
 read_counts_data <- function(filename) {
@@ -70,7 +44,7 @@ read_counts_data <- function(filename) {
 #
 # returns a named ("sense", "antisense" or "unstranded") list of tibbles
 #
-rename_counts_by_strandedness <- function(counts_list) {
+rename_counts_by_strandedness <- function(counts_list, orgAbbrev) {
   if (length(counts_list) == 1) {
     # Only one file → label it unstranded
     names(counts_list) <- "unstranded"
@@ -87,26 +61,23 @@ rename_counts_by_strandedness <- function(counts_list) {
   x_counts <- x %>% select(-1, -2)
   y_counts <- y %>% select(-1, -2)
   
-  # Compute per-sample medians (across each row)
-  x_medians <- x_counts %>%
-    rowwise() %>%
-    mutate(median = median(c_across(everything()), na.rm = TRUE)) %>%
-    pull(median)
-  
-  y_medians <- y_counts %>%
-    rowwise() %>%
-    mutate(median = median(c_across(everything()), na.rm = TRUE)) %>%
-    pull(median)
-  
-  if (all(x_medians > y_medians)) {
+  # Compute per-sample sums (across each row)
+  x_sums <- rowSums(x_counts)
+  y_sums <- rowSums(y_counts)
+
+  if (all(x_sums > y_sums)) {
     names(counts_list) <- c("sense", "antisense")
-  } else if (all(x_medians < y_medians)) {
+  } else if (all(x_sums < y_sums)) {
     names(counts_list) <- c("antisense", "sense")
   } else {
     stop("Strandedness could not be consistently determined for ", names(counts_list))
   }
+
+  suffix = paste0("_", orgAbbrev);
+
+  names(counts_list) = paste0(names(counts_list), suffix) 
   
-  counts_list
+  return(counts_list);
 }
 
 counts_to_entity <- function(tbl, name) {
@@ -140,38 +111,64 @@ counts_to_entity <- function(tbl, name) {
 #
 # the main event... wrangle()
 #
-wrangle <- function(projectId, speciesAndStrain, datasetName) {
+wrangle <- function() {
   
   # find the sample STF file
-  sample_filename <- file.path(
-    '../data/sample_stf',
-    speciesAndStrain,
-    datasetName,
-    'entity-sample.tsv'
+  sample_tsv_path <- file.path(
+    '*entity-sample.tsv'
   )
+
+  sample_tsv_file = Sys.glob(sample_tsv_path)
+  
   
   # find the countsForEda_*.txt files
   counts_file_glob <- file.path(
-    '../data/ReflowPlus-data',
-    projectId,
-    speciesAndStrain,
-    'rnaseq',
-    paste(speciesAndStrain, datasetName, '*', 'RSRC', sep = '_'),
-    'analysis_output/countsForEda*.txt'
+    '*_countsForEda*.txt'
   )
+
   counts_filenames <- Sys.glob(counts_file_glob)
-  
-  counts_data <- counts_filenames %>%
-    set_names() %>%
-    map(read_counts_data) %>%
-    rename_counts_by_strandedness() %>%
-    imap(counts_to_entity)
+
+  prefixes = strsplit(counts_filenames, "_")
+  uniquePrefixes = unique(sapply(prefixes, function(x) x[1]))
+
+
+  all_counts_data = c()
+
+  for(i in 1:length(uniquePrefixes)) {
+    prefix = uniquePrefixes[i];
+
+    filtered_counts_filenames = counts_filenames[startsWith(counts_filenames, prefix)]
+
+    filteredCountsData = countsData(filtered_counts_filenames, prefix)
+
+    all_counts_data[i] = filteredCountsData 
+  }
+
   
   # the entity will have the name 'sample'
-  samples <- entity_from_stf(sample_filename)
+  samples <- entity_from_stf(sample_tsv_file)
   
-  study <- study_from_entities(c(samples, counts_data), name = "RNA-Seq study")
+  study <- study_from_entities(c(samples, all_counts_data), name = "RNA-Seq study")
   
   study
 }
 
+
+countsData <- function(counts_filenames, orgAbbrev) {
+
+  counts_data <- counts_filenames %>% 
+    set_names() %>%
+    map(read_counts_data)  %>%
+    rename_counts_by_strandedness(., orgAbbrev) %>%
+    imap(counts_to_entity)
+
+  return(counts_data)
+}
+
+
+study = wrangle()
+
+# TODO:  will this stop if validation fails?
+validate(study)
+
+export_to_vdi(study, getwd());
