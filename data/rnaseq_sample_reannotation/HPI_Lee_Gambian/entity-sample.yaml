@@ -1,0 +1,171 @@
+name: sample
+display_name: Sample
+display_name_plural: Samples
+
+id_columns:
+  - id_column: sample.ID
+    entity_name: sample
+    provider_label:
+      - sample ID
+
+variables:
+  - variable: SRA.ID.s.
+    provider_label:
+      - SRA ID(s)
+    display_name: SRA ID(s)
+    data_type: string
+    data_shape: categorical
+    is_multi_valued: yes
+    multi_value_delimiter: ','
+  - variable: label
+    provider_label:
+      - label
+    display_name: label
+    data_type: string
+    data_shape: categorical
+  - variable: Sex
+    provider_label:
+      - Sex
+    display_name: Sex
+    data_type: string
+    data_shape: categorical
+  - variable: Ethnicity
+    provider_label:
+      - Ethnicity
+    display_name: Ethnicity
+    data_type: string
+    data_shape: categorical
+  - variable: Age
+    provider_label:
+      - Age
+    display_name: Age
+    data_type: number
+    data_shape: continuous
+    unit: year
+  - variable: Total.White.Cell.Count
+    provider_label:
+      - Total White Cell Count
+    display_name: Total White Cell Count
+    data_type: number
+    data_shape: continuous
+    unit: ×10^9/L
+  - variable: Percentage.lymphocytes
+    provider_label:
+      - Percentage lymphocytes
+    display_name: Percentage lymphocytes
+    data_type: number
+    data_shape: continuous
+    unit: percent
+  - variable: Lymphocyte.count
+    provider_label:
+      - Lymphocyte count
+    display_name: Lymphocyte count
+    data_type: number
+    data_shape: continuous
+    unit: ×10^9/L
+  - variable: Percentage.neutrophils
+    provider_label:
+      - Percentage neutrophils
+    display_name: Percentage neutrophils
+    data_type: number
+    data_shape: continuous
+    unit: percent
+  - variable: Neutrophil.count..x109.L.
+    provider_label:
+      - Neutrophil count (x109/L)
+    display_name: Neutrophil count (x109/L)
+    data_type: number
+    data_shape: continuous
+    unit: ×10^9/L
+  - variable: Percentage.monocytes
+    provider_label:
+      - Percentage monocytes
+    display_name: Percentage monocytes
+    data_type: number
+    data_shape: continuous
+    unit: percent
+  - variable: Monocyte.count
+    provider_label:
+      - Monocyte count
+    display_name: Monocyte count
+    data_type: number
+    data_shape: continuous
+    unit: ×10^9/L
+  - variable: Platelet.count
+    provider_label:
+      - Platelet count
+    display_name: Platelet count
+    data_type: number
+    data_shape: continuous
+    unit: ×10^9/L
+  - variable: Hemoglobin.concentration
+    provider_label:
+      - Hemoglobin concentration
+    display_name: Hemoglobin concentration
+    data_type: number
+    data_shape: continuous
+    unit: g/dL
+  - variable: Red.blood.cell.count..x1012.L.
+    provider_label:
+      - Red blood cell count (x1012/L)
+    display_name: Red blood cell count (x1012/L)
+    data_type: number
+    data_shape: continuous
+    unit: ×10^12/L
+  - variable: Mean.cell.volume
+    provider_label:
+      - Mean cell volume
+    display_name: Mean cell volume
+    data_type: number
+    data_shape: continuous
+    unit: fL
+  - variable: Sickle.cell.screen
+    provider_label:
+      - Sickle cell screen
+    display_name: Sickle cell screen
+    data_type: string
+    data_shape: categorical
+  - variable: Percentage.parasitemia
+    provider_label:
+      - Percentage parasitemia
+    display_name: Percentage parasitemia
+    data_type: number
+    data_shape: continuous
+    unit: percent
+  - variable: Parasite.density
+    provider_label:
+      - Parasite density
+    display_name: Parasite density
+    data_type: number
+    data_shape: continuous
+    unit: /ul
+  - variable: PfHRP2
+    provider_label:
+      - PfHRP2
+    display_name: PfHRP2
+    data_type: number
+    data_shape: continuous
+    unit: ng/mL
+  - variable: Parasite.clones
+    provider_label:
+      - Parasite clones
+    display_name: Parasite clones
+    data_type: number
+    data_shape: continuous
+  - variable: First.Blantyre.coma.score
+    provider_label:
+      - First Blantyre coma score
+    display_name: First Blantyre coma score
+    data_type: number
+    data_shape: continuous
+  - variable: Lactate
+    provider_label:
+      - Lactate
+    display_name: Lactate
+    data_type: number
+    data_shape: continuous
+    unit: mmol/L
+
+categories: []
+collections: []
+
