@@ -7,14 +7,15 @@
 read_counts_data <- function(filename) {
 
   # read in as all-character  
-  data <- read_tsv(
-    filename,
-    col_names = FALSE,
-    col_types = cols(.default = "c")
-  ) %>%
-    # and transpose
-    t() %>%
-    as_tibble()
+  suppressMessages(
+    data <- read_tsv(
+      filename,
+      col_names = FALSE,
+      col_types = cols(.default = "c")
+    ) %>%
+      # and transpose
+      t() %>% as_tibble(.name_repair = 'unique')
+  )
   
   # Extract the header row
   headers <- data %>% slice_head(n = 1) %>% unlist(use.names = FALSE)
@@ -47,7 +48,7 @@ read_counts_data <- function(filename) {
 rename_counts_by_strandedness <- function(counts_list, orgAbbrev) {
   if (length(counts_list) == 1) {
     # Only one file → label it unstranded
-    names(counts_list) <- "unstranded"
+    names(counts_list) <- paste0("unstranded_", orgAbbrev)
     return(counts_list)
   }
   
@@ -73,7 +74,7 @@ rename_counts_by_strandedness <- function(counts_list, orgAbbrev) {
     stop("Strandedness could not be consistently determined for ", names(counts_list))
   }
 
-  suffix = paste0("_", orgAbbrev);
+  suffix = paste0("_", orgAbbrev)
 
   names(counts_list) = paste0(names(counts_list), suffix) 
   
