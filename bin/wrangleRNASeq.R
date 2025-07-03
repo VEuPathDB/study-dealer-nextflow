@@ -1,21 +1,28 @@
 #!/usr/local/bin/Rscript
 
- library(tidyverse)
- library(study.wrangler)
+library(tidyverse)
+
+# use study.wrangler v1.0.14 or above for speed
+library(study.wrangler)
 
 
 read_counts_data <- function(filename) {
 
-  # read in as all-character  
-  suppressMessages(
-    data <- read_tsv(
-      filename,
-      col_names = FALSE,
-      col_types = cols(.default = "c")
-    ) %>%
-      # and transpose
-      t() %>% as_tibble(.name_repair = 'unique')
-  )
+  # read in as all-character
+  data <- read_tsv(
+    filename,
+    col_names = FALSE,
+    col_types = cols(.default = "c")
+  ) %>%
+    # and transpose
+    as.matrix() %>%
+    t()
+
+  # make colnames manually to avoid pairwise compute
+  colnames(data) <- sprintf("V%i", seq_len(ncol(data)))
+
+  # wrap it in a tibble with NO name repair overhead
+  data <- as_tibble(data, .name_repair = "minimal")
   
   # Extract the header row
   headers <- data %>% slice_head(n = 1) %>% unlist(use.names = FALSE)
