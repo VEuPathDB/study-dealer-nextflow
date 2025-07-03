@@ -42,7 +42,8 @@ read_counts_data <- function(filename) {
       ),
       assay.ID = sample.ID
     ) %>%
-    relocate(assay.ID, .after = sample.ID)
+    relocate(assay.ID, .after = sample.ID) %>%
+    select(-starts_with('__'))
   
   return(data)
 }
