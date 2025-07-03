@@ -117,6 +117,13 @@ counts_to_entity <- function(tbl, name) {
   assays
 }
 
+# returns a named list
+# of filename character vectors
+group_files_by_prefix <- function(filenames) {
+  prefixes <- sub("_.*", "", filenames) # extract text up to first “_”
+  split(filenames, prefixes)
+}
+
 #
 # the main event... wrangle()
 #
@@ -137,27 +144,17 @@ wrangle <- function() {
 
   counts_filenames <- Sys.glob(counts_file_glob)
 
-  prefixes = strsplit(counts_filenames, "_")
-  uniquePrefixes = unique(sapply(prefixes, function(x) x[1]))
-
-
-  all_counts_data = c()
-
-  for(i in 1:length(uniquePrefixes)) {
-    prefix = uniquePrefixes[i];
-
-    filtered_counts_filenames = counts_filenames[startsWith(counts_filenames, prefix)]
-
-    filteredCountsData = countsData(filtered_counts_filenames, prefix)
-
-    all_counts_data[i] = filteredCountsData 
-  }
-
+  files_by_prefix <- group_files_by_prefix(counts_filenames)
   
+  # call countsData() on each group, passing (files, prefix)  
+  all_counts_entities <- files_by_prefix %>% 
+    imap(~ countsData(.x, .y)) %>% 
+    flatten()
+
   # the entity will have the name 'sample'
   samples <- entity_from_stf(sample_tsv_file)
   
-  study <- study_from_entities(c(samples, all_counts_data), name = "RNA-Seq study")
+  study <- study_from_entities(c(samples, all_counts_entities), name = "RNA-Seq study")
   
   study
 }
