@@ -1,20 +1,28 @@
 #!/usr/local/bin/Rscript
 
- library(tidyverse)
- library(study.wrangler)
+library(tidyverse)
+
+# use study.wrangler v1.0.14 or above for speed
+library(study.wrangler)
 
 
 read_counts_data <- function(filename) {
 
-  # read in as all-character  
+  # read in as all-character
   data <- read_tsv(
     filename,
     col_names = FALSE,
     col_types = cols(.default = "c")
   ) %>%
     # and transpose
-    t() %>%
-    as_tibble()
+    as.matrix() %>%
+    t()
+
+  # make colnames manually to avoid pairwise compute
+  colnames(data) <- sprintf("V%i", seq_len(ncol(data)))
+
+  # wrap it in a tibble with NO name repair overhead
+  data <- as_tibble(data, .name_repair = "minimal")
   
   # Extract the header row
   headers <- data %>% slice_head(n = 1) %>% unlist(use.names = FALSE)
@@ -34,7 +42,8 @@ read_counts_data <- function(filename) {
       ),
       assay.ID = sample.ID
     ) %>%
-    relocate(assay.ID, .after = sample.ID)
+    relocate(assay.ID, .after = sample.ID) %>%
+    select(-starts_with('__'))
   
   return(data)
 }
@@ -47,7 +56,7 @@ read_counts_data <- function(filename) {
 rename_counts_by_strandedness <- function(counts_list, orgAbbrev) {
   if (length(counts_list) == 1) {
     # Only one file → label it unstranded
-    names(counts_list) <- "unstranded"
+    names(counts_list) <- paste0("unstranded_", orgAbbrev)
     return(counts_list)
   }
   
@@ -73,7 +82,7 @@ rename_counts_by_strandedness <- function(counts_list, orgAbbrev) {
     stop("Strandedness could not be consistently determined for ", names(counts_list))
   }
 
-  suffix = paste0("_", orgAbbrev);
+  suffix = paste0("_", orgAbbrev)
 
   names(counts_list) = paste0(names(counts_list), suffix) 
   
@@ -108,6 +117,13 @@ counts_to_entity <- function(tbl, name) {
   assays
 }
 
+# returns a named list
+# of filename character vectors
+group_files_by_prefix <- function(filenames) {
+  prefixes <- sub("_.*", "", filenames) # extract text up to first “_”
+  split(filenames, prefixes)
+}
+
 #
 # the main event... wrangle()
 #
@@ -128,27 +144,17 @@ wrangle <- function() {
 
   counts_filenames <- Sys.glob(counts_file_glob)
 
-  prefixes = strsplit(counts_filenames, "_")
-  uniquePrefixes = unique(sapply(prefixes, function(x) x[1]))
-
-
-  all_counts_data = c()
-
-  for(i in 1:length(uniquePrefixes)) {
-    prefix = uniquePrefixes[i];
-
-    filtered_counts_filenames = counts_filenames[startsWith(counts_filenames, prefix)]
-
-    filteredCountsData = countsData(filtered_counts_filenames, prefix)
-
-    all_counts_data[i] = filteredCountsData 
-  }
-
+  files_by_prefix <- group_files_by_prefix(counts_filenames)
   
+  # call countsData() on each group, passing (files, prefix)  
+  all_counts_entities <- files_by_prefix %>% 
+    imap(~ countsData(.x, .y)) %>% 
+    flatten()
+
   # the entity will have the name 'sample'
   samples <- entity_from_stf(sample_tsv_file)
   
-  study <- study_from_entities(c(samples, all_counts_data), name = "RNA-Seq study")
+  study <- study_from_entities(c(samples, all_counts_entities), name = "RNA-Seq study")
   
   study
 }
