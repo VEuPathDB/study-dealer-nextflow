@@ -11,8 +11,9 @@ include { single_study } from '../subworkflows/single_study'
 workflow single_phenotype_study {
 
     main:
-    phenotypeFile = Channel.fromPath(params.workflowPath + "/" + params.datasetName + "/" + params.filePatterns['phenotype'])
-    customWrangleScript = Channel.fromPath(params.workflowPath + "/" + params.datasetName + "/" + params.filePatterns['phenotypeScript'])
+    phenotypeFile = Channel.fromPath(params.filePatterns['phenotype'])
+
+    customWrangleScript = Channel.fromPath(params.filePatterns['phenotypeScript'])
 
     single_study(phenotypeFile, customWrangleScript)
 

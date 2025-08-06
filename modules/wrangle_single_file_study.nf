@@ -4,14 +4,17 @@ nextflow.enable.dsl = 2
 
 
 process wrangleSingleFileStudy {
-    container "veupathdb/study-wrangler:latest"
+    container "veupathdb/study-wrangler:1.0.15"
+
+    publishDir params.outputDir + "/" + params.datasetName, mode: 'copy'
+    
 
     input:
     path(dat)
     path(customWrangleScript)
 
     output:
-    tuple path("install.json"), path("*.cache")
+    tuple val(params.datasetName), path("install.json"), path("*.cache")
 
     script:
     """

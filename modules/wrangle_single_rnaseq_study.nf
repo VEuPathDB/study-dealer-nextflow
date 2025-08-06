@@ -4,7 +4,7 @@ nextflow.enable.dsl = 2
 
 
 process wrangleSingleRnaSeqStudy {
-    container "veupathdb/study-wrangler:latest"
+    container "veupathdb/study-wrangler:1.0.15"
 
     publishDir params.outputDir + "/${study}", mode: 'copy'
 
@@ -12,7 +12,7 @@ process wrangleSingleRnaSeqStudy {
     tuple val(study), path(dat)
 
     output:
-    tuple path("install.json"), path("*.cache")
+    tuple val(study), path("install.json"), path("*.cache")
 
     script:
     """
