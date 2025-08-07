@@ -17,8 +17,8 @@ source(wrangleScript)
 
 study = wrangle()
 
-
-# TODO:  will this stop if validation fails?
-validate(study)
+if(!validate(study)) {
+  stop("Stopping....Study is not valid");
+}
 
 export_to_vdi(study, getwd());
