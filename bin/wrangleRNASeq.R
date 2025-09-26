@@ -35,7 +35,7 @@ print_benchmark_summary <- function() {
 
 read_wgcna_data <- function(filename) {
   col_specs <- cols(
-    .default = '?', # guess
+    .default = 'd', # guess
     "...1" = col_character()
   )
 
@@ -73,7 +73,7 @@ read_rnaseq_data_default <- function(filename, columnSpec) {
     read_tsv(
       filename,
       col_names = TRUE,
-      col_types= col_specs
+      col_types= columnSpec
     )
   })
 
@@ -287,12 +287,11 @@ wrangle <- function() {
 
 countsData <- function(counts_filenames, orgAbbrev) {
 
-  counts_data = #<- benchmark(paste("read_counts_files", orgAbbrev), {
+  counts_data = benchmark(paste("read_counts_files", orgAbbrev), {
     counts_filenames %>%
       set_names() %>%
       map(read_rnaseq_data)
-  #})
-
+  })
   
   counts_data <- benchmark(paste("rename_strandedness", orgAbbrev), {
     rename_counts_by_strandedness(counts_data, orgAbbrev)
@@ -324,13 +323,10 @@ wgcnaData <- function(counts_filenames, orgAbbrev) {
 
 
 
-# Run the wrangling with benchmarking
-#study = wrangle()
+study = wrangle()
 
-# Validate the study (uncomment if validation is needed)
-# if(!validate(study, profiles=c("baseline", "eda")) {
-#   stop("Stopping....Study is not valid");
-# }
+if(!validate(study, profiles=c("baseline", "eda"))) {
+  stop("Stopping....Study is not valid");
+}
 
-# Export to VDI (uncomment if export is needed)
-# export_to_vdi(study, getwd());
+ export_to_vdi(study, getwd());
