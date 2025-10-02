@@ -4,7 +4,7 @@ nextflow.enable.dsl = 2
 
 
 process wrangleSingleRnaSeqStudy {
-    container "veupathdb/study-wrangler:1.0.15"
+    container "veupathdb/study-wrangler:1.0.16"
 
     publishDir params.outputDir + "/${study}", mode: 'copy'
 

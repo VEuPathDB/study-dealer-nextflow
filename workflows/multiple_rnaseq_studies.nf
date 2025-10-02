@@ -61,6 +61,7 @@ workflow multiple_rnaseq_studies {
     // mix counts files and add to ai sample meta data;  group result by "study"
     inputs = Channel.fromPath(params.filePatterns['ebiRnaSeqCounts'])
         .mix(Channel.fromPath(params.filePatterns['rnaSeqCounts']))
+        .mix(Channel.fromPath(params.filePatterns['rnaseqWgcna']))
         .map { file -> addFileMetadataToCounts(file, datasetToStudyMap)}
         .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
              .map { file -> addFileMetadataSampleDetails(file)  })
@@ -68,6 +69,6 @@ workflow multiple_rnaseq_studies {
 
     renamedAndGrouped = addOrganismPrefixAndFilterRows(inputs)
         .groupTuple(by:0)
-
+    
     single_rnaseq_study(renamedAndGrouped)
  }

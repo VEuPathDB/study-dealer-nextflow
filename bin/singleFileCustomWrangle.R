@@ -17,7 +17,7 @@ source(wrangleScript)
 
 study = wrangle()
 
-if(!validate(study)) {
+if(!validate(study, profiles=c("baseline", "eda"))) {
   stop("Stopping....Study is not valid");
 }
 
