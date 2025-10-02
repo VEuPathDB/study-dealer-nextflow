@@ -2,6 +2,8 @@
 
 library(tidyverse)
 
+library(glue)
+
 # use study.wrangler v1.0.14 or above for speed
 library(study.wrangler)
 
@@ -35,7 +37,7 @@ print_benchmark_summary <- function() {
 
 read_wgcna_data <- function(filename) {
   col_specs <- cols(
-    .default = 'd', # guess
+    .default = 'd', 
     "...1" = col_character()
   )
 
@@ -67,8 +69,6 @@ read_rnaseq_data <- function(filename) {
 read_rnaseq_data_default <- function(filename, columnSpec) {
   cat("Reading RNA-seq data from:", basename(filename), "\n")
 
-
- # read in as all-character
   data <- benchmark(paste("read_tsv", basename(filename)), {
     read_tsv(
       filename,
@@ -320,8 +320,6 @@ wgcnaData <- function(counts_filenames, orgAbbrev) {
 
   return(counts_data)
 }
-
-
 
 study = wrangle()
 
