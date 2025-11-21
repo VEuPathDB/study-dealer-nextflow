@@ -75,10 +75,6 @@ wrangle <- function() {
 
   array_entity <- core_protein_array_env$createProteinArrayAssayEntity(antibodyArrayEntityFile);
 
-  # Inspect the array entity
-  message("\nAntibody Microarray entity summary:")
-  inspect(array_entity)
-
   # ===== VALIDATE ENTITIES =====
   message("\n=== Validating Entities ===")
 

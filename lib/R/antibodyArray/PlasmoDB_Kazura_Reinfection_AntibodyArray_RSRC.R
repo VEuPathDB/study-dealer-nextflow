@@ -79,13 +79,9 @@ wrangle <- function() {
 
   array_entity <- core_protein_array_env$createProteinArrayAssayEntity(antibodyArrayEntityFile);
 
-  # Inspect the array entity
-  message("\nAntibody Microarray entity summary:")
-  inspect(array_entity)
 
   # ===== VALIDATE ENTITIES =====
   message("\n=== Validating Entities ===")
-
   sample_validation <- validate(sample_entity, profile = "eda")
   if (!is.null(sample_validation) && length(sample_validation) > 0) {
     warning("Sample entity validation issues:")
@@ -104,12 +100,10 @@ wrangle <- function() {
 
   # ===== CREATE STUDY =====
   message("\n=== Creating Study ===")
-
   study <- study_from_entities(
     entities = list(sample_entity, array_entity),
     name = "PlasmoDB_Crompton_Mali_AntibodyArray_RSRC"
   )
-
   # Validate study
   message("\n=== Validating Study ===")
   study_validation <- validate(study, profile = "eda")
@@ -120,14 +114,6 @@ wrangle <- function() {
     message("Study validation passed!")
   }
 
-  # Print summary
-  message("\n=== Curation Summary ===")
-  message("Study name: ", study@name)
-  message("Number of entities: 2")
-  message("Sample entity: ", nrow(sample_entity@data), " observations, ",
-          ncol(sample_entity@data), " variables")
-  message("Antibody Array entity: ", nrow(array_entity@data), " observations (gene-sample pairs), ",
-          ncol(array_entity@data), " variables")
 
   return(study)
 }
