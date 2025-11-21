@@ -34,7 +34,6 @@ wrangle <- function() {
                           definition = "Samples for this investigation were obtained from Ugandan children enrolled in either the Tororo Child Cohort (TCC) Study or the Kanungu site of the Program for Resistance, Immunology, and Surveillance of Malaria Cohort Study.") %>%
     set_variable_metadata('malCount_Before', display_name = "Cumulative malaria episode count",
                           definition = "Count of symptomatic malaria episodes from time of enrollment to sample collection.") %>%
-
     set_variable_metadata('city', display_name = "City, village, or region") %>%
     set_variable_metadata('country', display_name = "Country") %>%
     set_variable_metadata('sex', display_name = "Sex") %>%
