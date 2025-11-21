@@ -13,8 +13,8 @@ workflow single_phenotype_study {
     main:
     phenotypeFile = Channel.fromPath(params.filePatterns['phenotype'])
 
-    customWrangleScript = Channel.fromPath(params.filePatterns['phenotypeScript'])
+//    customWrangleScript = Channel.fromPath(params.filePatterns['phenotypeScript'])
 
-    single_study(phenotypeFile, customWrangleScript)
+    single_study(phenotypeFile)
 
 }

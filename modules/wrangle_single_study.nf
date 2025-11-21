@@ -3,21 +3,21 @@
 nextflow.enable.dsl = 2
 
 
-process wrangleSingleFileStudy {
-    container "veupathdb/study-wrangler:1.0.16"
+process wrangleSingleStudy {
+    //container "veupathdb/study-wrangler:1.0.25"
+    container "jbrestel/study-wrangler"
 
     publishDir params.outputDir + "/" + params.datasetName, mode: 'copy'
     
 
     input:
     path(dat)
-    path(customWrangleScript)
 
     output:
     tuple val(params.datasetName), path("install.json"), path("*.cache")
 
     script:
     """
-    singleFileCustomWrangle.R $customWrangleScript
+    singleStudyWrangle.R $params.datasetName $params.mode
     """
 }

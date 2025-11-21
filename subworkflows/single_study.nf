@@ -2,7 +2,7 @@
 
 nextflow.enable.dsl = 2
 
-include { wrangleSingleFileStudy } from '../modules/wrangle_single_file_study'
+include { wrangleSingleStudy } from '../modules/wrangle_single_study'
 
 include { wrangleSingleRnaSeqStudy } from '../modules/wrangle_single_rnaseq_study'
 
@@ -12,12 +12,12 @@ include { loadVdiArtifacts  } from '../modules/load_vdi_artifacts'
 
 workflow single_study {
     take:
-    dataFile
-    customWrangleScript
+    obj
 
     main:
-    artifacts = wrangleSingleFileStudy(dataFile, customWrangleScript)
+    artifacts = wrangleSingleStudy(obj)
 }
+
 
 
 workflow single_rnaseq_study {

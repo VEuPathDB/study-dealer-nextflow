@@ -5,6 +5,8 @@ nextflow.enable.dsl = 2
 
 include { single_phenotype_study } from './workflows/single_phenotype_study'
 
+include { single_antibodyArray_study } from './workflows/single_antibodyArray_study'
+
 include { multiple_rnaseq_studies } from './workflows/multiple_rnaseq_studies'
 
 workflow {
@@ -15,6 +17,10 @@ workflow {
         single_phenotype_study()
     }
 
+    if(params.mode == "antibodyArray") {
+        single_antibodyArray_study()
+    }
+    
     if(params.mode == "rnaseq") {
         multiple_rnaseq_studies()
     }
