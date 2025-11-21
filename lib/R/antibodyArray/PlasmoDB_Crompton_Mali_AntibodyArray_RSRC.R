@@ -14,8 +14,13 @@ wrangle <- function() {
 
   sample_entity = core_protein_array_env$createProteinArraySampleEntity(sampleEntityFile);
 
+  # Add the Dataset Variable (here there is only one but adding to be consistent with other ab array studies)
   sample_entity <- sample_entity %>%
-    ## redetect_columns_as_variables(c("SampleName"))
+    modify_data(mutate(dataset = "Protein targets of serum antibodies in response to infection")) %>%
+    sync_variable_metadata() %>%
+    set_variable_metadata('dataset', display_name = "Dataset")
+
+  sample_entity <- sample_entity %>%
     set_variable_metadata('SampleName', entity_name = 'Sample') %>%
     set_variable_metadata('Subject.ID',
                           display_name = "Host ID") %>%
@@ -69,9 +74,6 @@ wrangle <- function() {
   inspect(sample_entity)
 
   array_entity <- core_protein_array_env$createProteinArrayAssayEntity(antibodyArrayEntityFile);
-
-  
-  array_entity <- core_protein_array_env$createProteinArrayAssayEntity("profiles.txt");
 
   # Inspect the array entity
   message("\nAntibody Microarray entity summary:")
