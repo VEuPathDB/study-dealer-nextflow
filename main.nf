@@ -3,18 +3,25 @@
 nextflow.enable.dsl = 2
 
 
-include { single_phenotype_study } from './workflows/single_phenotype_study'
-
 include { multiple_rnaseq_studies } from './workflows/multiple_rnaseq_studies'
+
+include { single_study } from './subworkflows/single_study'
+
 
 workflow {
 
     main:
 
     if(params.mode == "phenotype") {
-        single_phenotype_study()
+        phenotypeFile = Channel.fromPath(params.filePatterns['phenotype'])
+        single_study(antibodyArrayFiles.collect())
     }
 
+    if(params.mode == "antibodyArray") {
+        antibodyArrayFiles = Channel.fromPath(params.filePatterns['antibodyArray'])
+        single_study(antibodyArrayFiles.collect())
+    }
+    
     if(params.mode == "rnaseq") {
         multiple_rnaseq_studies()
     }
