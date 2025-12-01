@@ -4,7 +4,7 @@ nextflow.enable.dsl = 2
 
 
 process wrangleSingleStudy {
-    container "veupathdb/study-wrangler:1.0.25"
+    container "veupathdb/study-wrangler:1.0.26"
 
     publishDir params.outputDir + "/" + params.datasetName, mode: 'copy'
     
