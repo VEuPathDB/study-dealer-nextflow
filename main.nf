@@ -13,15 +13,21 @@ workflow {
     main:
 
     if(params.mode == "phenotype") {
-        phenotypeFile = Channel.fromPath(params.filePatterns['phenotype'])
-        single_study(antibodyArrayFiles.collect())
+        phenotypeFiles = Channel.fromPath(params.filePatterns['phenotype'])
+        single_study(phenotypeFiles.collect())
     }
 
     if(params.mode == "antibodyArray") {
         antibodyArrayFiles = Channel.fromPath(params.filePatterns['antibodyArray'])
         single_study(antibodyArrayFiles.collect())
     }
-    
+
+    if(params.mode == "cellularLocalization") {
+        cellularLocalizationFiles = Channel.fromPath(params.filePatterns['cellularLocalization'])
+        single_study(cellularLocalizationFiles.collect())
+    }
+
+
     if(params.mode == "rnaseq") {
         multiple_rnaseq_studies()
     }
