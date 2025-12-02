@@ -10,9 +10,6 @@ wrangle <- function() {
   data_dir <- "."
   rflp_files <- list.files(path = data_dir, pattern = "\\.txt$", full.names = TRUE)
 
-  # Exclude the HTML reference file if present
-  rflp_files <- rflp_files[!grepl("\\.html$", rflp_files)]
-
   message("Found ", length(rflp_files), " data files to combine")
 
   # Read and combine all files
