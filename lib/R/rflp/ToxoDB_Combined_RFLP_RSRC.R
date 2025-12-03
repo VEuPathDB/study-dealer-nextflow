@@ -129,16 +129,20 @@ wrangle <- function() {
   # Set PMID metadata if the column exists
   if ("PMID" %in% names(rflp_entity@data)) {
     rflp_entity <- rflp_entity %>%
+      # Convert PMID data to character first
+      modify_data(mutate(PMID = as.character(PMID))) %>%
+      # Then set the metadata (data_type AND data_shape must be consistent)
       set_variable_metadata('PMID',
                             display_name = "PubMed ID",
                             definition = "PubMed identifier for the publication",
-                            data_type = "string")
-    message("PMID variable set to data_type: string")
+                            data_type = "string",
+                            data_shape = "categorical")
+    message("PMID converted to character with data_type=string and data_shape=categorical")
   }
 
   # Validate entity
   message("\n=== Validating Entity ===")
-  entity_validation <- validate(rflp_entity, profile = "eda")
+  entity_validation <- validate(rflp_entity, profiles=c("eda", "baseline"))
   if (!is.null(entity_validation) && length(entity_validation) > 0) {
     warning("Entity validation issues:")
     print(entity_validation)
@@ -155,7 +159,7 @@ wrangle <- function() {
 
   # Validate study
   message("\n=== Validating Study ===")
-  study_validation <- validate(rflp_study, profile = "eda")
+  study_validation <- validate(rflp_study, profiles=c("eda", "baseline"))
   if (!is.null(study_validation) && length(study_validation) > 0) {
     warning("Study validation issues:")
     print(study_validation)
