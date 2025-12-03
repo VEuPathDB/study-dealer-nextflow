@@ -77,10 +77,10 @@ wrangle <- function() {
     set_variable_display_names_from_provider_labels()
 
   # Create unique ID and set as primary key
-  rflp_entity <- rflp_entity %>%
-    modify_data(mutate(ID = row_number())) %>%
-    sync_variable_metadata() %>%
-    redetect_column_as_id('ID')
+  ## rflp_entity <- rflp_entity %>%
+  ##   modify_data(mutate(ID = row_number())) %>%
+  ##   sync_variable_metadata() %>%
+  ##   redetect_column_as_id('ID')
 
   # Set specific variable metadata for key columns
   rflp_entity <- rflp_entity %>%
