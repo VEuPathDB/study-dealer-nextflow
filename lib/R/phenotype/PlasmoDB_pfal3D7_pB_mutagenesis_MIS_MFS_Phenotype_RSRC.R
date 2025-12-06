@@ -1,6 +1,5 @@
-#removeColumns = function(data) {
-#  return(select(data, -c("mutant fitness score", "mutagenesis index score")))
-#}
+library(tidyverse)
+library(study.wrangler)
 
 wrangle <- function() {
   rm(list = ls())
@@ -27,12 +26,11 @@ wrangle <- function() {
 
   ## update columns as needed
   genePhenotype <- genePhenotype %>%
-
     set_variable_metadata('mutant.fitness.score', display_order=2, display_name = "Mutant Fitness Score", definition="Mutant fitness score") %>%
     set_variable_metadata('mutagenesis.index.score', display_order=3, display_name = "Mutagenesis Index Score", definition="Mutagenesis index score")
 
-  crisprStudy = study("pfal3D7_phenotype_pB_mutagenesis_MIS_MFS_RSRC", genePhenotype)
+  study = study("pfal3D7_phenotype_pB_mutagenesis_MIS_MFS", genePhenotype)
 
-  return(crisprStudy)
+  return(study)
 
 }

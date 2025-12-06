@@ -1,3 +1,7 @@
+library(tidyverse)
+library(study.wrangler)
+
+
 wrangle <- function() {
   rm(list = ls())
 
@@ -25,8 +29,8 @@ wrangle <- function() {
 
   # Set variable metadata with display_order, display_name, and definition
   genePhenotype <- genePhenotype %>%
-    set_variable_metadata('PAN_NAME', display_order = 1, display_name = "PAN_NAME", definition = "PAN_NAME") %>%
-    set_variable_metadata('GENE_SOURCE_ID', display_order = 2, display_name = "Gene", definition = "GENE_SOURCE_ID") %>%
+    set_variable_metadata('phenotype_id', display_order = 1, display_name = "phenotype_id", hidden=list('variableTree')) %>%
+    set_variable_metadata('gene', display_order = 2, display_name = "Gene", definition = "Gene") %>%
     set_variable_metadata('PHI.base.entry', display_order = 3, display_name = "PHI-base Entry", definition = "PHI.base.entry") %>%
     set_variable_metadata('Essential.gene', display_order = 4, display_name = "Essential Gene", definition = "Essential.gene") %>%
     set_variable_metadata('Multiple.mutations', display_order = 5, display_name = "Multiple Mutations", definition = "Multiple.mutations") %>%
@@ -52,8 +56,8 @@ wrangle <- function() {
     set_variable_metadata('Comments', display_order = 25, display_name = "Comments", definition = "Comments")
 
   # Create study entity
-  crisprStudy = study("fgraPH-1_PHI-base_curated_phenotype_NAFeaturePhenotypeGeneric_RSRC", genePhenotype)
+  study = study("PHI-base_curated_phenotype", genePhenotype)
 
-  return(crisprStudy)
+  return(study)
 }
 

@@ -1,3 +1,7 @@
+library(tidyverse)
+library(study.wrangler)
+
+
 wrangle <- function() {
   rm(list = ls())
 
@@ -22,8 +26,8 @@ wrangle <- function() {
   genePhenotype <- genePhenotype %>%
     set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree'))
 
-  crisprStudy = study("pfal3D7_phenotype_HS_Response_Phenotype_RSRC", genePhenotype)
+  study = study("pfal3D7_phenotype_HS_Response_Phenotype", genePhenotype)
 
-  return(crisprStudy)
+  return(study)
 
 }

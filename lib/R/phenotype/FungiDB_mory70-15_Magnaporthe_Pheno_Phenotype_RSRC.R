@@ -1,8 +1,12 @@
+library(tidyverse)
+library(study.wrangler)
+
+
 wrangle <- function() {
   rm(list = ls())
   
   # read in file
-  genePhenotype = entity_from_file("phenotype.txt")
+  genePhenotype = entity_from_file("phenotype_with_names.txt")
   
   # Set meta data for entity
   genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
@@ -21,14 +25,16 @@ wrangle <- function() {
   
   genePhenotype <- genePhenotype %>%
     set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
-    set_variable_metadata('pubmedId', display_order=2, display_name = "Pubmed ID", definition = "Pubmed ID") %>%
+    set_variable_metadata('pubmedId', display_order=2, display_name = "Pubmed ID", definition = "Pubmed ID", data_type = "string", data_shape = "categorical") %>%
     set_variable_metadata('organism', display_order=3, display_name = "Organism", definition = "Organism") %>%
-    set_variable_metadata('qualityTerm', display_order=4, display_name = "Quality Term", definition = "Quality Term") %>%
-    set_variable_metadata('entityTerm', display_order=5, display_name = "Entity Term", definition = "Entity Term") %>%
+    set_variable_metadata('qualityTerm', display_order=5, display_name = "Quality Term ID", definition = "Quality Term ID", hidden=list('variableTree')) %>%
+    set_variable_metadata('entityTerm', display_order=6, display_name = "Entity Term ID", definition = "Entity Term ID", hidden=list('variableTree')) %>%
+    set_variable_metadata('qualityTerm_name', display_order=5, display_name = "Quality Term", definition = "Quality Term") %>%
+    set_variable_metadata('entityTerm_name', display_order=6, display_name = "Entity Term", definition = "Entity Term") %>%
     set_variable_metadata('note', display_order=6, display_name = "Note", definition = "Note")
   
-  crisprStudy = study("mory70-15_phenotype_Magnaporthe_Pheno_RSRC", genePhenotype)
+  study = study("mory70-15_phenotype_Magnaporthe_Pheno", genePhenotype)
   
-  return(crisprStudy)
+  return(study)
   
 }

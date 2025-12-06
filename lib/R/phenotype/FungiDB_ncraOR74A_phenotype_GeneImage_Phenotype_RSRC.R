@@ -1,3 +1,7 @@
+library(tidyverse)
+library(study.wrangler)
+
+
 wrangle <- function() {
   rm(list = ls())
 
@@ -5,7 +9,7 @@ wrangle <- function() {
   genePhenotype = entity_from_file("phenotype_results.txt")
 
   # Set meta data for entity
- genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
+ genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeImageData", display_name = "Phenotype Image Collection", stable_id="genePhenotypeImageCollection", display_name_plural="Gene Phenotype Image Collection")
 
    # make gene column a variable
  genePhenotype <- genePhenotype %>% redetect_columns_as_variables('gene')
@@ -31,8 +35,8 @@ wrangle <- function() {
     set_variable_metadata('temperature', display_order=8, display_name = "temperature", definition = "temperature") %>%
     set_variable_metadata('timepoint', display_order=9, display_name = "timepoint", definition = "timepoint")
 
-crisprStudy = study("ncraOR74A_phenotype_GeneImage_NAFeaturePhenotypeImage_RSRC", genePhenotype)
+  study = study("ncraOR74A_phenotype_GeneImage_NAFeaturePhenotypeImage", genePhenotype)
 
-  return(crisprStudy)
+  return(study)
 
 }

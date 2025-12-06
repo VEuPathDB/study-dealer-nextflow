@@ -1,3 +1,8 @@
+library(tidyverse)
+library(study.wrangler)
+
+
+
 wrangle <- function() {
   rm(list = ls())
 
@@ -80,9 +85,9 @@ genePhenotype <- genePhenotype %>%
   set_variable_metadata('adherence_with_dox', display_order=58, display_name="57: Adherence to RPMI + Bovine Serum-primed 6-well plates with 0.5ug_mL DOX [pmid:27870871]", definition="57: Adherence to RPMI + Bovine Serum-primed 6-well plates with 0.5ug_mL DOX [pmid:27870871]")
 
 
- crisprStudy = study("calbSC5314_phenotype_Shapiro_2021_Calb_RSRC", genePhenotype)
+ study = study("calbSC5314_phenotype_Shapiro_2021_Calb", genePhenotype)
 
-  return(crisprStudy)
+  return(study)
 
 }
 

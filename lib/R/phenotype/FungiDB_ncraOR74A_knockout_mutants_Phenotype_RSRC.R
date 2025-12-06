@@ -1,3 +1,6 @@
+library(tidyverse)
+library(study.wrangler)
+
 wrangle <- function() {
   rm(list = ls())
 
@@ -19,9 +22,9 @@ wrangle <- function() {
 
   genePhenotype <- genePhenotype %>%
     set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
-    set_variable_metadata('pubmed', display_name = "Pubmed", display_order=2, definition = "Pubmed") %>%
-    set_variable_metadata('gene_classification', display_name = "Gene Classification", display_order=3,definition = "Gene Classification") %>%
-    set_variable_metadata('fgsc', display_name = "FGSC ID", display_order=4,definition = "FGSC ID") %>%
+    set_variable_metadata('pubmed', display_name = "Pubmed", display_order=2, definition = "Pubmed", data_type = "string", data_shape = "categorical") %>%
+    set_variable_metadata('gene_classification', display_name = "Gene Classification", display_order=3,definition = "Gene Classification", hidden=list('variableTree')) %>%
+    set_variable_metadata('fgsc', display_name = "FGSC ID", display_order=4,definition = "FGSC ID", hidden=list('variableTree')) %>%
     set_variable_metadata('gene_name', display_name = "Gene Name", display_order=5, definition = "Gene Name") %>%
     set_variable_metadata('mating_type', display_name = "Mating Type", display_order=6,definition = "Mating Type") %>%
     set_variable_metadata('basal_hyphae_growth_rate', display_name = "Basal Hyphae Growth Rate", display_order=7,definition = "Basal Hyphae Growth Rate") %>%
@@ -35,8 +38,8 @@ wrangle <- function() {
     set_variable_metadata('ascospore_number', display_name = "Ascospore Number", display_order=15, definition = "Ascospore Number") %>%
     set_variable_metadata('ascospore_morphology', display_name = "Ascospore Morphology", display_order=16, definition = "Ascospore Morphology")
 
-  crisprStudy = study("ncraOR74A_phenotype_knockout_mutants_RSRC", genePhenotype)
+  study = study("ncraOR74A_phenotype_knockout_mutants", genePhenotype)
 
-  return(crisprStudy)
+  return(study)
 
 }

@@ -1,3 +1,7 @@
+library(tidyverse)
+library(study.wrangler)
+
+
 wrangle <- function() {
   rm(list = ls())
 
@@ -24,8 +28,8 @@ wrangle <- function() {
     set_variable_metadata('Hybrid.model.score', display_order=2, display_name = "Hybrid Model Score", definition = "Hybrid Model Score") %>%
     set_variable_metadata('Occupancy.index.score', display_order=3, display_name = "Occupancy Index Score", definition = "Occupancy Index Score")
   
-  crisprStudy = study("pknoH_phenotype_piggyBac_mutagenesis_HME_MIS_OIS_RSRC", genePhenotype)
+  study = study("pknoH_phenotype_piggyBac_mutagenesis_HME_MIS_OIS", genePhenotype)
 
-  return(crisprStudy)
+  return(study)
 
 }

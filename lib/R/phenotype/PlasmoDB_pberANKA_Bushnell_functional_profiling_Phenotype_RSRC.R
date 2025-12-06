@@ -1,3 +1,6 @@
+library(tidyverse)
+library(study.wrangler)
+
 wrangle <- function() {
   rm(list = ls())
   
@@ -33,8 +36,8 @@ wrangle <- function() {
     set_variable_metadata('construct', display_order=9, display_name = "Targeting Vector", definition = "Targeting Vector") %>%
     set_variable_metadata('notes', display_order=10, display_name = "Notes", definition = "Notes")
   
-  crisprStudy = study("pberANKA_phenotype_Bushnell_functional_profiling_RSRC", genePhenotype)
+  study = study("pberANKA_phenotype_Bushnell_functional_profiling", genePhenotype)
   
-  return(crisprStudy)
+  return(study)
 }
 

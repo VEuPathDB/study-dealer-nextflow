@@ -1,3 +1,7 @@
+library(tidyverse)
+library(study.wrangler)
+
+
 removeColumns = function(data) {
   return(select(data, -c("PE p-value", "Lung p-value", "Liver p-value", "Spleen p-value")))
 }
@@ -82,7 +86,7 @@ wrangle <- function() {
 
   set_variable_metadata('gene', display_name = "Gene")
 
-  crisprStudy = study("tgonGT1_crisprPhenotype_CrisprFunctionalProfiling_RSRC", genePhenotype)
+  crisprStudy = study("tgonGT1_crisprPhenotype_CrisprFunctionalProfiling", genePhenotype)
   
   return(crisprStudy)
 }

@@ -1,29 +1,36 @@
+library(tidyverse)
+library(study.wrangler)
+
+
 wrangle <- function() {
   rm(list = ls())
 
-  # read in file
+  ## read in file
   genePhenotype = entity_from_file("phenotype_results.txt")
 
-  # Set meta data for entity
- genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
+  ## Set meta data for entity
+  genePhenotype <- genePhenotype %>%
+    set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
 
-   # make gene column a variable
- genePhenotype <- genePhenotype %>% redetect_columns_as_variables('gene')
- 
-  #default column/variable labels
- genePhenotype <- genePhenotype %>%  set_variable_display_names_from_provider_labels()
+  ## make gene column a variable
+  genePhenotype <- genePhenotype %>%
+    redetect_columns_as_variables('gene')
+  
+  ##default column/variable labels
+  genePhenotype <- genePhenotype %>%
+    set_variable_display_names_from_provider_labels()
 
-  #  deal with the primary Key (gene variable). boilerplate
- genePhenotype <- genePhenotype %>%
-   modify_data(mutate(ID = row_number())) %>%
-   sync_variable_metadata() %>%
-   redetect_column_as_id('ID')
+  ##  deal with the primary Key (gene variable). boilerplate
+  genePhenotype <- genePhenotype %>%
+    modify_data(mutate(ID = row_number())) %>%
+    sync_variable_metadata() %>%
+    redetect_column_as_id('ID')
 
   genePhenotype <- genePhenotype %>%
     set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
-    set_variable_metadata('Feature_Type', display_order=2, display_name = "Feature Type", definition = "Feature Type") %>%
-    set_variable_metadata('Gene_Name', display_order=3, display_name = "Gene Name", definition = "Gene Name") %>%
-    set_variable_metadata('CGDID', display_order=4, display_name = "CGDID", definition = "CGDID") %>%
+    set_variable_metadata('Feature_Type', display_order=2, display_name = "Feature Type", definition = "Feature Type", hidden=list('variableTree')) %>%
+    set_variable_metadata('Gene_Name', display_order=3, display_name = "Gene Name", definition = "Gene Name", hidden=list('variableTree')) %>%
+    set_variable_metadata('CGDID', display_order=4, display_name = "CGDID", definition = "CGDID", hidden=list('variableTree')) %>%
     set_variable_metadata('Reference', display_order=5, display_name = "Reference", definition = "Reference") %>%
     set_variable_metadata('Experiment_Type', display_order=6, display_name = "Experiment Type", definition = "Experiment Type") %>%
     set_variable_metadata('Mutant_Type', display_order=7, display_name = "Mutant Type", definition = "Mutant Type") %>%
@@ -37,11 +44,8 @@ wrangle <- function() {
     set_variable_metadata('Anatomical_Structure', display_order=15, display_name = "Anatomical Structure", definition = "Anatomical Structure") %>%
     set_variable_metadata('Virulence_Model', display_order=16, display_name = "Virulence Model", definition = "Virulence Model") %>%
     set_variable_metadata('Species', display_order=17, display_name = "Species", definition = "Species")
-    
-    
-   
-  crisprStudy = study("calbSC5314_phenotype_CGD_pheno_RSRC", genePhenotype)
+  
+  study = study("calbSC5314_phenotype_CGD_pheno", genePhenotype)
 
-  return(crisprStudy)
-
+  return(study)
 }

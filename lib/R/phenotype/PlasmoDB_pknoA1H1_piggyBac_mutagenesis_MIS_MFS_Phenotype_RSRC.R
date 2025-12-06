@@ -1,3 +1,7 @@
+library(tidyverse)
+library(study.wrangler)
+
+
 wrangle <- function() {
   rm(list = ls())
 
@@ -24,8 +28,8 @@ wrangle <- function() {
     set_variable_metadata('MIS.plus', display_order=2, display_name = "MIS Plus", definition = "MIS Plus") %>%
     set_variable_metadata('mutability', display_order=3, display_name = "Mutability in CDS", definition = "Mutability in CDS")
   
-  crisprStudy = study("pknoA1H1_phenotype_piggyBac_mutagenesis_MIS_MFS_RSRC", genePhenotype)
+  study = study("pknoA1H1_phenotype_piggyBac_mutagenesis_MIS_MFS", genePhenotype)
 
-  return(crisprStudy)
+  return(study)
 
 }
