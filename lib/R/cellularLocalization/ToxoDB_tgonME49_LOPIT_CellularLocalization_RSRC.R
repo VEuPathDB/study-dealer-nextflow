@@ -9,8 +9,9 @@ wrangle <- function() {
   mcmc_file = "TAGM_MCMC_Joint_Probability.tab"
 
   # Read both files - first column contains gene IDs
-  map_data <- read_tsv(map_file, col_types = cols(.default = "c"))
-  mcmc_data <- read_tsv(mcmc_file, col_types = cols(.default = "c"))
+  # Using read.delim for more reliable parsing of tab-delimited files
+  map_data <- read.delim(map_file, header = TRUE, sep = "\t", stringsAsFactors = FALSE, check.names = FALSE)
+  mcmc_data <- read.delim(mcmc_file, header = TRUE, sep = "\t", stringsAsFactors = FALSE, check.names = FALSE)
 
   # Rename the first column to "gene" if it's not already named
   if (names(map_data)[1] != "gene") {
@@ -20,9 +21,42 @@ wrangle <- function() {
     names(mcmc_data)[1] <- "gene"
   }
 
-  # Merge the two files by gene, adding suffixes to distinguish MAP vs MCMC values
-  merged_data <- map_data %>%
-    left_join(mcmc_data, by = "gene", suffix = c(".MAP", ".MCMC"))
+  # Convert to tibble for tidyverse operations
+  map_data <- as_tibble(map_data)
+  mcmc_data <- as_tibble(mcmc_data)
+
+  # Convert MAP data to tall format: find max probability compartment for each gene
+  map_tall <- map_data %>%
+    pivot_longer(cols = -gene, names_to = "compartment", values_to = "probability") %>%
+    mutate(probability = as.numeric(probability)) %>%
+    group_by(gene) %>%
+    slice_max(probability, n = 1, with_ties = FALSE) %>%
+    ungroup() %>%
+    select(gene,
+           tagm.map.localisation.prediction = compartment,
+           tagm.map.localisation.probability = probability)
+
+  # Convert MCMC data to tall format: find max probability compartment for each gene
+  mcmc_tall <- mcmc_data %>%
+    pivot_longer(cols = -gene, names_to = "compartment", values_to = "probability") %>%
+    mutate(probability = as.numeric(probability)) %>%
+    group_by(gene) %>%
+    slice_max(probability, n = 1, with_ties = FALSE) %>%
+    ungroup() %>%
+    select(gene,
+           tagm.mcmc.localisation.prediction = compartment,
+           tagm.mcmc.localisation.probability = probability)
+
+  # Add suffixes to distinguish MAP vs MCMC values before merging
+  map_tall <- map_tall %>%
+    rename_with(~paste0(., ".MAP"), -gene)
+
+  mcmc_tall <- mcmc_tall %>%
+    rename_with(~paste0(., ".MCMC"), -gene)
+
+  # Merge the two datasets by gene
+  merged_data <- map_tall %>%
+    full_join(mcmc_tall, by = "gene")
 
   # Add Dataset variable
   merged_data <- merged_data %>%
@@ -50,11 +84,15 @@ wrangle <- function() {
                          display_order = 1,
                          hidden = list('variableTree'))
 
-  # Set dataset variable metadata
+  # Set dataset variable metadata and individual variable metadata
   lopitEntity <- lopitEntity %>%
     set_variable_metadata('dataset',
                          display_name = "Dataset",
-                         display_order = 2)
+                         display_order = 2) %>%
+    set_variable_metadata('tagm.map.localisation.prediction.MAP', display_name = "MAP Prediction") %>%
+    set_variable_metadata('tagm.map.localisation.probability.MAP', display_name = "MAP Probability") %>%
+    set_variable_metadata('tagm.mcmc.localisation.prediction.MCMC', display_name = "MCMC Prediction") %>%
+    set_variable_metadata('tagm.mcmc.localisation.probability.MCMC', display_name = "MCMC Probability")
 
   # Deal with the primary Key (ID variable). Boilerplate
   lopitEntity <- lopitEntity %>%
@@ -77,15 +115,15 @@ wrangle <- function() {
   # Create variable categories for MAP and MCMC methods
   lopitEntity <- lopitEntity %>%
     create_variable_category(
-      category_name = "map_probabilities",
-      display_name = "TAGM MAP Joint Probabilities",
-      definition = "Joint probability estimates for cellular localization using the TAGM MAP (Maximum A Posteriori) method",
+      category_name = "map_localization",
+      display_name = "TAGM MAP Localization",
+      definition = "Cellular localization predictions and probabilities using the TAGM MAP (Maximum A Posteriori) method",
       children = map_vars
     ) %>%
     create_variable_category(
-      category_name = "mcmc_probabilities",
-      display_name = "TAGM MCMC Joint Probabilities",
-      definition = "Joint probability estimates for cellular localization using the TAGM MCMC (Markov Chain Monte Carlo) method",
+      category_name = "mcmc_localization",
+      display_name = "TAGM MCMC Localization",
+      definition = "Cellular localization predictions and probabilities using the TAGM MCMC (Markov Chain Monte Carlo) method",
       children = mcmc_vars
     )
 
