@@ -36,7 +36,7 @@ wrangle <- function() {
     set_variable_metadata('construct', display_order=9, display_name = "Targeting Vector", definition = "Targeting Vector") %>%
     set_variable_metadata('notes', display_order=10, display_name = "Notes", definition = "Notes")
   
-  study = study("pberANKA_phenotype_Bushnell_functional_profiling", genePhenotype)
+  study = study("pberANKA_phenotype_Bushell_functional_profiling", genePhenotype)
   
   return(study)
 }
