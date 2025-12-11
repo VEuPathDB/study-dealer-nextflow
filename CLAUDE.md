@@ -74,7 +74,7 @@ nextflow run main.nf --outputDir /path/to/output
 - `multiDatasetStudies`: JSON file mapping datasets to studies
 
 ### Docker Containers Used
-- `veupathdb/study-wrangler:1.0.15`: Main RNA-seq processing container
+- `veupathdb/study-wrangler:1.0.27`: Main RNA-seq processing container
 - `veupathdb/alpine_bash:latest`: Utility container for file filtering
 
 ### R Scripts
