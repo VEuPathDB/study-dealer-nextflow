@@ -4,12 +4,12 @@ nextflow.enable.dsl = 2
 
 
 process wrangleSingleRnaSeqStudy {
-    container "veupathdb/study-wrangler:1.0.27"
+    container "veupathdb/study-wrangler:${params.studyWranglerTag}"
 
-//    publishDir params.outputDir + "/${study}", mode: 'copy'
+    publishDir params.outputDir + "/${study}", mode: 'copy'
 
     input:
-    tuple val(study), path(dat)
+    tuple val(study), path(dat), val(extDbNames)
 
     output:
     tuple val(study), path("install.json"), path("*.cache")
