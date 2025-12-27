@@ -58,7 +58,7 @@ wrangle <- function() {
     )   %>%
     create_variable_category(
       "parasite.information",
-      display_name = "Parisite Information",
+      display_name = "Parasite Information",
       children = c("parasite.organism", "parasite.strain")
     )   %>%
   create_variable_category(
