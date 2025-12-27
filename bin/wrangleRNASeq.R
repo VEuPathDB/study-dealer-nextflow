@@ -38,7 +38,7 @@ print_benchmark_summary <- function() {
 read_wgcna_data <- function(filename) {
   col_specs <- cols(
     .default = 'd', 
-    "...1" = col_character()
+    "Module" = col_character()
   )
 
   data <- read_rnaseq_data_default(filename, col_specs) %>%
@@ -135,20 +135,31 @@ counts_to_entity <- function(tbl, name, orgAbbrev) {
   # strip off the prefix
   name = sub(glue("{orgAbbrev}_"), "", name);
 
+  
   assays <- benchmark(paste("entity_from_tibble", name), {
     entity_from_tibble(
       tbl,
-      name = glue("{orgAbbrev}_{name}_counts"),
+      name = glue("{orgAbbrev} {name} counts"),
       display_name = glue("{orgAbbrev} {name} htseq counts"),
       display_name_plural = glue("{orgAbbrev} {name} htseq counts"),
       skip_type_convert = TRUE
     ) %>%
       set_parents('sample', 'sample.ID') %>%
-      set_variable_display_names_from_provider_labels() %>%
+  ##    set_variable_display_names_from_provider_labels() %>%
       set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree')) %>%
       set_variable_metadata('assay.ID', display_name = "HTSeq Count", hidden=list('variableTree'))
   })
 
+  assays <- benchmark(paste("set_stable_ids", name), {
+    # Directly mutate the variables tibble instead of using reduce()
+    gene_idx <- assays@variables$data_type != 'id'
+    assays@variables$stable_id[gene_idx] <- assays@variables$variable[gene_idx]
+    assays@variables$display_name[gene_idx] <- assays@variables$variable[gene_idx]
+    assays
+  })
+
+
+  
   assays <- benchmark(paste("create_variable_metadata", name), {
     assays %>%
       create_variable_category(
@@ -175,13 +186,13 @@ wgcna_to_entity <- function(tbl, name, orgAbbrev) {
   assays <- benchmark(paste("wgcna_entity_from_tibble", name), {
     entity_from_tibble(
       tbl,
-      name = glue("{orgAbbrev}_eigengene"),
+      name = glue("{orgAbbrev} eigengene"),
       display_name = glue("{orgAbbrev} Eigengene (wgcna)"),
       display_name_plural = glue("{orgAbbrev} Eigengenes (wgcna)"),
       skip_type_convert = TRUE
       #TO DO, description = ???
     ) %>%
-      set_parents(glue("{orgAbbrev}_Sense_counts"), 'assay.ID') %>%
+      set_parents(glue("{orgAbbrev} Sense counts"), 'assay.ID') %>%
       set_variable_display_names_from_provider_labels() %>%
       set_variable_metadata('assay.ID', display_name = "Assay ID", hidden=list('variableTree')) %>%
       set_variable_metadata('wgcna.ID', display_name = "WGCNA ID", hidden=list('variableTree'))
@@ -275,13 +286,16 @@ wrangle <- function() {
       set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree'))
   })
 
+
+  #return(list(samples = samples, all_counts_entities = all_counts_entities, all_wgcna_entities = all_wgcna_entities))
+  
   study <- benchmark("create_study", {
     study_from_entities(c(samples, all_counts_entities, all_wgcna_entities), name = "RNA-Seq study")
   })
 
   print_benchmark_summary()
 
-  study
+  return(study);
 }
 
 
