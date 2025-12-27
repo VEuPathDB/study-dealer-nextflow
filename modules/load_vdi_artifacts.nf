@@ -17,7 +17,7 @@ process loadVdiArtifacts {
         --studyFile study.cache \
         --entityTypeGraphFile entitytypegraph.cache  \
         --extDbRlsSpec "$datasetName|%" \
-        --gusConfigFile $params.gusConfigFile \
+        --gusConfigFile ${params.gusHomeDir}/config/gus.config \
         --commit
     """
 
