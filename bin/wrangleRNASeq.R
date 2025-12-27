@@ -145,18 +145,18 @@ counts_to_entity <- function(tbl, name, orgAbbrev) {
       skip_type_convert = TRUE
     ) %>%
       set_parents('sample', 'sample.ID') %>%
-      set_variable_display_names_from_provider_labels() %>%
+  ##    set_variable_display_names_from_provider_labels() %>%
       set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree')) %>%
       set_variable_metadata('assay.ID', display_name = "HTSeq Count", hidden=list('variableTree'))
   })
 
-  geneVariables <- assays@variables %>%
-    filter(data_type != 'id') %>%
-    pull(variable)
-
-  assays <- reduce(geneVariables, function(ent, var_name) {
-    ent %>% quiet() %>% set_variable_metadata(var_name, stable_id = var_name)
-  }, .init = assays)
+  assays <- benchmark(paste("set_stable_ids", name), {
+    # Directly mutate the variables tibble instead of using reduce()
+    gene_idx <- assays@variables$data_type != 'id'
+    assays@variables$stable_id[gene_idx] <- assays@variables$variable[gene_idx]
+    assays@variables$display_name[gene_idx] <- assays@variables$variable[gene_idx]
+    assays
+  })
 
 
   
@@ -293,7 +293,7 @@ wrangle <- function() {
     study_from_entities(c(samples, all_counts_entities, all_wgcna_entities), name = "RNA-Seq study")
   })
 
-#  print_benchmark_summary()
+  print_benchmark_summary()
 
   return(study);
 }
