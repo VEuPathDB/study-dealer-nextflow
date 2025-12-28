@@ -9,7 +9,8 @@ include { single_rnaseq_study } from '../subworkflows/single_study'
 include { addOrganismPrefixAndFilterRows } from '../modules/utils'
 include { dumpEdaExternalDatabaseNames } from '../modules/utils'
 include { dumpAllExternalDatabaseNames } from '../modules/utils'
-include { fileMatcher } from '../modules/utils'
+include { fileMatcher as fileMatcher_one } from '../modules/utils'
+include { fileMatcher as fileMatcher_two } from '../modules/utils'
 
 def slurpJson(jsonFilePath) {
     def jsonSlurper = new JsonSlurper()
@@ -56,26 +57,19 @@ def addFileMetadataSampleDetails(file) {
 }
 
 
-//workflow multiple_rnaseq_studies {
-//    main:
-
-//    ebiStudies = fileMatcher(params.filePatterns['ebiRnaSeqCounts']);
-//    nonEbiStudies = fileMatcher(params.filePatterns['rnaSeqCounts']);
-
-
-//}
-
 workflow multiple_rnaseq_studies {
 
     main:
     datasetToStudyMap = slurpJson("${params.multiDatasetStudies}")
 
     // mix counts files and add to ai sample meta data;  group result by "study"
-    inputs = Channel.fromPath(params.filePatterns['ebiRnaSeqCounts'])
-        .mix(Channel.fromPath(params.filePatterns['rnaSeqCounts']))
+    inputs = fileMatcher_one(params.filePatterns['ebiRnaSeqCounts'])
+        .splitCsv()
+        .mix(fileMatcher_two(params.filePatterns['rnaSeqCounts']).splitCsv())
         .map { file -> addFileMetadataToCounts(file, datasetToStudyMap)}
-        .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
+        .mix(Channel.fromPath("~/tempAiRnaSeqMetaData/*/*.{tsv,yaml}")
              .map { file -> addFileMetadataSampleDetails(file)  })
+//        .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
 
 
 
@@ -127,7 +121,7 @@ workflow multiple_rnaseq_studies {
             }
 
             // Log that we're processing this study
-            log.info "Processing study '${studyName}' - database name(s) found in external database releases: ${matchingAllNames.join(', ')}"
+            //log.info "Processing study '${studyName}' - database name(s) found in external database releases: ${matchingAllNames.join(', ')}"
             return true
         }
         .map { studyName, files, cleanedNames, edaDbNamesSet, allDbNamesSet ->

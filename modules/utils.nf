@@ -6,6 +6,8 @@ nextflow.enable.dsl = 2
 process addOrganismPrefixAndFilterRows {
     container "veupathdb/alpine_bash:latest"
 
+    maxForks 10
+
     input:
     tuple val(study), val(orgAbbrev), path(file), val(datasetName)
 
