@@ -70,10 +70,7 @@ workflow multiple_rnaseq_studies {
         .map { file -> addFileMetadataToCounts(file, datasetToStudyMap)}
         .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
              .map { file -> addFileMetadataSampleDetails(file)  })
-             //        .mix(Channel.fromPath("~/tempAiRnaSeqMetaData/*/*.{tsv,yaml}")
-
-
-
+//      .mix(Channel.fromPath("/home/jbrestel/tempAiRnaSeqMetaData/*/*.{tsv,yaml}")  
 
 
     renamedAndGrouped = addOrganismPrefixAndFilterRows(inputs)
@@ -83,13 +80,15 @@ workflow multiple_rnaseq_studies {
     splitStudies = renamedAndGrouped
         .branch {
             studyName, files, datasetNames ->
-            def hasSampleDetails = files.any { it.name.startsWith("SAMPLE_DETAILS_") }
+            def hasSampleDetails = files.any { it.name.endsWith("entity-sample.yaml") }
             withSampleDetails: hasSampleDetails
             withoutSampleDetails: !hasSampleDetails
         }
 
     // Report studies without SAMPLE_DETAILS
-    reportStudiesWithoutSampleDetails(splitStudies.withoutSampleDetails)
+    studiesMissingSampleDetails = reportStudiesWithoutSampleDetails(splitStudies.withoutSampleDetails)
+
+    studiesMissingSampleDetails.collectFile(name: "studies_missing_sample_details.txt", storeDir: params.outputDir)
 
     // Continue processing only studies with SAMPLE_DETAILS
     studiesWithSampleDetails = splitStudies.withSampleDetails
