@@ -9,6 +9,7 @@ include { single_rnaseq_study } from '../subworkflows/single_study'
 include { addOrganismPrefixAndFilterRows } from '../modules/utils'
 include { dumpEdaExternalDatabaseNames } from '../modules/utils'
 include { dumpAllExternalDatabaseNames } from '../modules/utils'
+include { fileMatcher } from '../modules/utils'
 
 def slurpJson(jsonFilePath) {
     def jsonSlurper = new JsonSlurper()
@@ -55,6 +56,15 @@ def addFileMetadataSampleDetails(file) {
 }
 
 
+//workflow multiple_rnaseq_studies {
+//    main:
+
+//    ebiStudies = fileMatcher(params.filePatterns['ebiRnaSeqCounts']);
+//    nonEbiStudies = fileMatcher(params.filePatterns['rnaSeqCounts']);
+
+
+//}
+
 workflow multiple_rnaseq_studies {
 
     main:
@@ -63,7 +73,6 @@ workflow multiple_rnaseq_studies {
     // mix counts files and add to ai sample meta data;  group result by "study"
     inputs = Channel.fromPath(params.filePatterns['ebiRnaSeqCounts'])
         .mix(Channel.fromPath(params.filePatterns['rnaSeqCounts']))
-        .mix(Channel.fromPath(params.filePatterns['rnaseqWgcna']))
         .map { file -> addFileMetadataToCounts(file, datasetToStudyMap)}
         .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
              .map { file -> addFileMetadataSampleDetails(file)  })

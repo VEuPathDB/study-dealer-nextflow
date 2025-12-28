@@ -21,6 +21,24 @@ process addOrganismPrefixAndFilterRows {
 }
 
 
+process fileMatcher {
+    container "veupathdb/alpine_bash:latest"
+
+    input:
+    val(globPattern)
+
+    output:
+    path("matchedFiles.txt")    
+
+    script:
+    """
+    ls $globPattern >matchedFiles.txt
+    """
+
+}
+
+
+
 process dumpEdaExternalDatabaseNames {
     container "veupathdb/vdi-plugin-wrangler"
 
