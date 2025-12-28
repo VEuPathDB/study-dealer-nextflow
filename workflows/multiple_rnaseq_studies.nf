@@ -11,6 +11,7 @@ include { dumpEdaExternalDatabaseNames } from '../modules/utils'
 include { dumpAllExternalDatabaseNames } from '../modules/utils'
 include { fileMatcher as fileMatcher_one } from '../modules/utils'
 include { fileMatcher as fileMatcher_two } from '../modules/utils'
+include { reportStudiesWithoutSampleDetails } from '../modules/utils'
 
 def slurpJson(jsonFilePath) {
     def jsonSlurper = new JsonSlurper()
@@ -67,14 +68,31 @@ workflow multiple_rnaseq_studies {
         .splitCsv()
         .mix(fileMatcher_two(params.filePatterns['rnaSeqCounts']).splitCsv())
         .map { file -> addFileMetadataToCounts(file, datasetToStudyMap)}
-        .mix(Channel.fromPath("~/tempAiRnaSeqMetaData/*/*.{tsv,yaml}")
+        .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
              .map { file -> addFileMetadataSampleDetails(file)  })
-//        .mix(Channel.fromPath(params.filePatterns['rnaseqAiMetadata'])
+             //        .mix(Channel.fromPath("~/tempAiRnaSeqMetaData/*/*.{tsv,yaml}")
+
+
 
 
 
     renamedAndGrouped = addOrganismPrefixAndFilterRows(inputs)
         .groupTuple(by:0)
+
+    // Split studies based on whether they have SAMPLE_DETAILS
+    splitStudies = renamedAndGrouped
+        .branch {
+            studyName, files, datasetNames ->
+            def hasSampleDetails = files.any { it.name.startsWith("SAMPLE_DETAILS_") }
+            withSampleDetails: hasSampleDetails
+            withoutSampleDetails: !hasSampleDetails
+        }
+
+    // Report studies without SAMPLE_DETAILS
+    reportStudiesWithoutSampleDetails(splitStudies.withoutSampleDetails)
+
+    // Continue processing only studies with SAMPLE_DETAILS
+    studiesWithSampleDetails = splitStudies.withSampleDetails
 
     // Dump EDA external database names from the database (already in EDA)
     edaDatabaseNamesSet = dumpEdaExternalDatabaseNames()
@@ -92,10 +110,11 @@ workflow multiple_rnaseq_studies {
         .collect()
         .map { it.toSet() }
 
+
     // Filter the channel:
     // 1. Exclude studies that are already in the EDA database
     // 2. Include only studies that have database names in all_external_database_names
-    filtered = renamedAndGrouped
+    filtered = studiesWithSampleDetails
         .combine(edaDatabaseNamesSet)
         .combine(allDatabaseNamesSet)
         .map { studyName, files, databaseNames, edaDbNamesSet, allDbNamesSet ->
