@@ -111,16 +111,163 @@ rename_counts_by_strandedness <- function(counts_list, orgAbbrev) {
   x_counts <- x %>% select(-1, -2)
   y_counts <- y %>% select(-1, -2)
 
-  # Compute per-sample sums (across each row)
+  # Compute per-sample sums (across each row - samples are rows after transpose)
   x_sums <- rowSums(x_counts)
   y_sums <- rowSums(y_counts)
 
-  if (all(x_sums > y_sums)) {
+  # Count how many samples support each hypothesis
+  x_higher_count <- sum(x_sums > y_sums)
+  y_higher_count <- sum(x_sums < y_sums)
+  total_samples <- length(x_sums)
+
+  # Also check gene-level consistency (genes are columns after transpose)
+  # For each gene, sum across all samples
+  x_gene_sums <- colSums(x_counts)
+  y_gene_sums <- colSums(y_counts)
+  x_gene_higher_count <- sum(x_gene_sums > y_gene_sums)
+  y_gene_higher_count <- sum(x_gene_sums < y_gene_sums)
+  total_genes <- length(x_gene_sums)
+
+  # Write diagnostic report
+  report_file <- "strandedness_report.txt"
+  cat("=== STRANDEDNESS DETECTION REPORT ===\n", file = report_file)
+  cat(sprintf("Files: %s\n\n", paste(names(counts_list), collapse = ", ")), file = report_file, append = TRUE)
+
+  cat("SAMPLE-LEVEL ANALYSIS:\n", file = report_file, append = TRUE)
+  cat(sprintf("  Total samples: %d\n", total_samples), file = report_file, append = TRUE)
+  cat(sprintf("  Samples where file1 > file2: %d (%.1f%%)\n",
+              x_higher_count, 100 * x_higher_count / total_samples), file = report_file, append = TRUE)
+  cat(sprintf("  Samples where file2 > file1: %d (%.1f%%)\n",
+              y_higher_count, 100 * y_higher_count / total_samples), file = report_file, append = TRUE)
+
+  # Identify sample outliers
+  majority_direction <- if (x_higher_count > y_higher_count) "first" else "second"
+  sample_outliers <- if (majority_direction == "first") {
+    which(x_sums < y_sums)
+  } else {
+    which(x_sums > y_sums)
+  }
+
+  if (length(sample_outliers) > 0) {
+    cat("\n  SAMPLE OUTLIERS (opposite from majority):\n", file = report_file, append = TRUE)
+    for (idx in sample_outliers) {
+      ratio <- if (majority_direction == "first") {
+        y_sums[idx] / x_sums[idx]
+      } else {
+        x_sums[idx] / y_sums[idx]
+      }
+      cat(sprintf("    Sample: %s\n", x$sample.ID[idx]), file = report_file, append = TRUE)
+      cat(sprintf("      File1 total: %d\n", x_sums[idx]), file = report_file, append = TRUE)
+      cat(sprintf("      File2 total: %d\n", y_sums[idx]), file = report_file, append = TRUE)
+      cat(sprintf("      Ratio: %.3f\n", ratio), file = report_file, append = TRUE)
+    }
+  }
+
+  cat("\nGENE-LEVEL ANALYSIS:\n", file = report_file, append = TRUE)
+  cat(sprintf("  Total genes: %d\n", total_genes), file = report_file, append = TRUE)
+  cat(sprintf("  Genes where file1 > file2: %d (%.1f%%)\n",
+              x_gene_higher_count, 100 * x_gene_higher_count / total_genes), file = report_file, append = TRUE)
+  cat(sprintf("  Genes where file2 > file1: %d (%.1f%%)\n",
+              y_gene_higher_count, 100 * y_gene_higher_count / total_genes), file = report_file, append = TRUE)
+
+  # Identify gene outliers (top 20 most discrepant)
+  gene_direction <- if (x_gene_higher_count > y_gene_higher_count) "first" else "second"
+  gene_outlier_indices <- if (gene_direction == "first") {
+    which(x_gene_sums < y_gene_sums)
+  } else {
+    which(x_gene_sums > y_gene_sums)
+  }
+
+  if (length(gene_outlier_indices) > 0) {
+    # Calculate fold-change for outliers
+    gene_ratios <- if (gene_direction == "first") {
+      y_gene_sums[gene_outlier_indices] / pmax(x_gene_sums[gene_outlier_indices], 1)
+    } else {
+      x_gene_sums[gene_outlier_indices] / pmax(y_gene_sums[gene_outlier_indices], 1)
+    }
+
+    # Sort by ratio and take top 20
+    top_indices <- head(order(gene_ratios, decreasing = TRUE), 20)
+    gene_names <- colnames(x_counts)[gene_outlier_indices[top_indices]]
+
+    cat("\n  TOP 20 GENE OUTLIERS (highest fold-change opposite from majority):\n", file = report_file, append = TRUE)
+    for (i in seq_along(top_indices)) {
+      orig_idx <- gene_outlier_indices[top_indices[i]]
+      cat(sprintf("    %s: file1=%d, file2=%d, ratio=%.2f\n",
+                  gene_names[i],
+                  x_gene_sums[orig_idx],
+                  y_gene_sums[orig_idx],
+                  gene_ratios[top_indices[i]]), file = report_file, append = TRUE)
+    }
+  }
+
+  cat("\n", file = report_file, append = TRUE)
+
+  # Use majority vote with at least 80% agreement threshold
+  threshold <- 0.8
+
+  # Collect sample outlier names for summary
+  sample_outlier_names <- if (length(sample_outliers) > 0) {
+    paste(x$sample.ID[sample_outliers], collapse = ",")
+  } else {
+    "none"
+  }
+
+  if (x_higher_count >= threshold * total_samples) {
+    result <- sprintf("Strandedness determined by majority vote: %d/%d samples (%.1f%%) show first > second",
+                x_higher_count, total_samples, 100 * x_higher_count / total_samples)
+    cat(result, "\n")
+    cat(result, "\n", file = report_file, append = TRUE)
+    cat(sprintf("Decision: File 1 = Sense, File 2 = Antisense\n"), file = report_file, append = TRUE)
+
+    # Add parseable summary line for Nextflow
+    cat(sprintf("\nSUMMARY\t%s\t%d\t%d\t%d\t%.1f\t%s\t%d\t%d\t%.1f\t%s\n",
+                orgAbbrev,
+                total_samples, x_higher_count, y_higher_count,
+                100 * x_higher_count / total_samples,
+                "Sense/Antisense",
+                total_genes, length(gene_outlier_indices),
+                100 * length(gene_outlier_indices) / total_genes,
+                sample_outlier_names), file = report_file, append = TRUE)
+
+    cat(sprintf("\nReport written to: %s\n", report_file), file = report_file, append = TRUE)
     names(counts_list) <- c("Sense", "Antisense")
-  } else if (all(x_sums < y_sums)) {
+  } else if (y_higher_count >= threshold * total_samples) {
+    result <- sprintf("Strandedness determined by majority vote: %d/%d samples (%.1f%%) show second > first",
+                y_higher_count, total_samples, 100 * y_higher_count / total_samples)
+    cat(result, "\n")
+    cat(result, "\n", file = report_file, append = TRUE)
+    cat(sprintf("Decision: File 1 = Antisense, File 2 = Sense\n"), file = report_file, append = TRUE)
+
+    # Add parseable summary line for Nextflow
+    cat(sprintf("\nSUMMARY\t%s\t%d\t%d\t%d\t%.1f\t%s\t%d\t%d\t%.1f\t%s\n",
+                orgAbbrev,
+                total_samples, x_higher_count, y_higher_count,
+                100 * max(x_higher_count, y_higher_count) / total_samples,
+                "Antisense/Sense",
+                total_genes, length(gene_outlier_indices),
+                100 * length(gene_outlier_indices) / total_genes,
+                sample_outlier_names), file = report_file, append = TRUE)
+
+    cat(sprintf("\nReport written to: %s\n", report_file), file = report_file, append = TRUE)
     names(counts_list) <- c("Antisense", "Sense")
   } else {
-    stop("Strandedness could not be consistently determined for ", names(counts_list))
+    # Add parseable summary line even for failures
+    cat(sprintf("\nSUMMARY\t%s\t%d\t%d\t%d\t%.1f\t%s\t%d\t%d\t%.1f\t%s\n",
+                orgAbbrev,
+                total_samples, x_higher_count, y_higher_count,
+                100 * max(x_higher_count, y_higher_count) / total_samples,
+                "UNDETERMINED",
+                total_genes, length(gene_outlier_indices),
+                100 * length(gene_outlier_indices) / total_genes,
+                sample_outlier_names), file = report_file, append = TRUE)
+
+    cat(sprintf("\nReport written to: %s\n", report_file), file = report_file, append = TRUE)
+    stop(sprintf("Strandedness could not be determined for %s: only %d/%d samples (%.1f%%) agree",
+                 paste(basename(names(counts_list)), collapse=", "),
+                 max(x_higher_count, y_higher_count),
+                 total_samples,
+                 100 * max(x_higher_count, y_higher_count) / total_samples))
   }
 
   prefix = paste0(orgAbbrev, "_")

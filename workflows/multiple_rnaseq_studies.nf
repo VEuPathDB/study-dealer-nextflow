@@ -148,4 +148,13 @@ workflow multiple_rnaseq_studies {
         }
 
     single_rnaseq_study(filtered)
+
+    // Collect all strandedness summaries and create a combined report
+    strandedness_summaries = single_rnaseq_study.out.strandedness_summary
+        .collectFile(
+            name: 'strandedness_summary_all_studies.tsv',
+            storeDir: params.outputDir,
+            newLine: false,
+            seed: "study\torganism\ttotal_samples\tfirst_higher_count\tsecond_higher_count\tagreement_pct\tdecision\ttotal_genes\tgene_outliers_count\tgene_outliers_pct\tsample_outliers\n"
+        )
  }
