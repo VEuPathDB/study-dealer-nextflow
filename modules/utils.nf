@@ -77,20 +77,20 @@ process dumpAllExternalDatabaseNames {
 process reportStudiesWithoutSampleDetails {
     container "veupathdb/alpine_bash:latest"
 
-    publishDir "${params.outputDir}/reports", mode: 'copy'
+    maxForks 10
 
     input:
     tuple val(studyName), path(files), val(datasetNames)
 
     output:
-    path "studies_without_sample_details.txt"
+    path "no_sample_details.txt"
 
     script:
     def datasetList = datasetNames.findAll { it != "" }.unique().join(", ")
     """
-    echo "Study: ${studyName}" >> studies_without_sample_details.txt
-    echo "Datasets: ${datasetList}" >> studies_without_sample_details.txt
-    echo "Files: ${files.join(', ')}" >> studies_without_sample_details.txt
-    echo "---" >> studies_without_sample_details.txt
+    echo "Study: ${studyName}" >> no_sample_details.txt
+    echo "Datasets: ${datasetList}" >> no_sample_details.txt
+    echo "Files: ${files.join(', ')}" >> no_sample_details.txt
+    echo "---" >> no_sample_details.txt
     """
 }
