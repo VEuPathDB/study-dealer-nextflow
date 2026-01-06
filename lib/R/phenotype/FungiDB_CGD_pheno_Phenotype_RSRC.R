@@ -41,9 +41,7 @@ wrangle <- function() {
     set_variable_metadata('Condition', display_order=12, display_name = "Condition", definition = "Condition") %>%
     set_variable_metadata('Details', display_order=13, display_name = "Details", definition = "Details") %>%
     set_variable_metadata('Reporter', display_order=14, display_name = "Reporter", definition = "Reporter") %>%
-    set_variable_metadata('Anatomical_Structure', display_order=15, display_name = "Anatomical Structure", definition = "Anatomical Structure") %>%
-    set_variable_metadata('Virulence_Model', display_order=16, display_name = "Virulence Model", definition = "Virulence Model") %>%
-    set_variable_metadata('Species', display_order=17, display_name = "Species", definition = "Species")
+    set_variable_metadata('Virulence_Model', display_order=16, display_name = "Virulence Model", definition = "Virulence Model")
   
   study = study("calbSC5314_phenotype_CGD_pheno", genePhenotype)
 

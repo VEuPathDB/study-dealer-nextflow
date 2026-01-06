@@ -36,8 +36,9 @@ wrangle <- function() {
     set_variable_metadata('perithecia_number', display_name = "Perithecia Number", display_order=13, definition = "Perithecia Number") %>%
     set_variable_metadata('perithecia_morphology', display_name = "Perithecia Morphology", display_order=14, definition = "Perithecia Morphology") %>%
     set_variable_metadata('ascospore_number', display_name = "Ascospore Number", display_order=15, definition = "Ascospore Number") %>%
-    set_variable_metadata('ascospore_morphology', display_name = "Ascospore Morphology", display_order=16, definition = "Ascospore Morphology")
-
+    set_variable_metadata('ascospore_morphology', display_name = "Ascospore Morphology", display_order=16, definition = "Ascospore Morphology") %>%
+    modify_data(mutate(pubmed = as.character(pubmed)))
+  
   study = study("ncraOR74A_phenotype_knockout_mutants", genePhenotype)
 
   return(study)

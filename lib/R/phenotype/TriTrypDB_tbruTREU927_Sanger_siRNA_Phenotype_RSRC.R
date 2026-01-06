@@ -37,8 +37,8 @@ wrangle <- function() {
     set_variable_metadata('qualityTerm_name', display_order=5, display_name = "Quality Term", definition = "Quality Term") %>%
     set_variable_metadata('entityTerm_name', display_order=6, display_name = "Entity Term", definition = "Entity Term") %>%
     set_variable_metadata('lifeCycleTerm_name', display_order=8, display_name = "Life Cycle Term", definition = "Life Cycle Term")  %>%
-    set_variable_metadata('evidenceTerm_name', display_order=9, display_name = "Evidence Term", definition = "Evidence Term")
-
+    set_variable_metadata('evidenceTerm_name', display_order=9, display_name = "Evidence Term", definition = "Evidence Term")  %>%
+    modify_data(mutate(pubmedId = as.character(pubmedId)))
   
   
   study = study("tbruTREU927_phenotype_Sanger_siRNA", genePhenotype)

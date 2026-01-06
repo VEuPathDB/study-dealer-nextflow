@@ -31,7 +31,8 @@ wrangle <- function() {
     set_variable_metadata('entityTerm', display_order=6, display_name = "Entity Term ID", definition = "Entity Term ID", hidden=list('variableTree')) %>%
     set_variable_metadata('qualityTerm_name', display_order=5, display_name = "Quality Term", definition = "Quality Term") %>%
     set_variable_metadata('entityTerm_name', display_order=6, display_name = "Entity Term", definition = "Entity Term") %>%
-    set_variable_metadata('note', display_order=6, display_name = "Note", definition = "Note")
+    set_variable_metadata('note', display_order=6, display_name = "Note", definition = "Note") %>%
+    modify_data(mutate(pubmedId = as.character(pubmedId)))
   
   study = study("mory70-15_phenotype_Magnaporthe_Pheno", genePhenotype)
   
