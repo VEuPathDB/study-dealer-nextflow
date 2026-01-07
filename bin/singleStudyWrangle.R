@@ -19,7 +19,7 @@ source(datasetScript, local=dataset_env)
 
 # Always assign the studyName to be the dataset name for uniqueness
 study <- dataset_env$wrangle() %>%
-  dataset_env$set_study_name(datasetName)
+  set_study_name(datasetName)
 
 
 
