@@ -96,7 +96,7 @@ wrangle <- function() {
     )
 
   # Create the study
-  lopitStudy <- study("tbruTREU927_hyperLopit_CellularLocalization_RSRC", lopitEntity)
+  lopitStudy <- study(name="TEMP_STUDY_NAME", lopitEntity)
 
   return(lopitStudy)
 }

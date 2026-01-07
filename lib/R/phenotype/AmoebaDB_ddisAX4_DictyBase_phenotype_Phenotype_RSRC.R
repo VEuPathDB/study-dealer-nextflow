@@ -55,8 +55,8 @@ wrangle <- function() {
     set_variable_metadata('Strain.Descriptor', display_order=3, display_name = "Strain Descriptor", definition = "Strain Descriptor") %>%
     set_variables_multivalued('gene' = ' | ', 'Phenotypes' = ' | ')
 
-  study = study("ddisAX4_DictyBase_phenotype_NAFeaturePhenotypeGeneric", genePhenotype)
-  
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
+
   return(study)
   
 }

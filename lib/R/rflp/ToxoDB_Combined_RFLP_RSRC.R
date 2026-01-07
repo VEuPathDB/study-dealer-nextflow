@@ -153,7 +153,7 @@ wrangle <- function() {
   # Create study
   message("\n=== Creating Study ===")
   rflp_study <- study(
-    name = "ToxoDB_Combined_RFLP_RSRC",
+    name = "TEMP_STUDY_NAME",
     rflp_entity
   )
 

@@ -34,8 +34,8 @@ wrangle <- function() {
     set_variable_metadata('note', display_order=6, display_name = "Note", definition = "Note") %>%
     modify_data(mutate(pubmedId = as.character(pubmedId)))
   
-  study = study("mory70-15_phenotype_Magnaporthe_Pheno", genePhenotype)
-  
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
+
   return(study)
   
 }

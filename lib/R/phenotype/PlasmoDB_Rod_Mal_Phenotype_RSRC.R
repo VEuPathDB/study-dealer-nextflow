@@ -41,7 +41,7 @@ wrangle <- function() {
     set_variable_metadata('liverstagePhenotype', display_order=13, display_name = "Liver Stage Phenotype", definition = "Phenotype observed in liver stage") %>%
     set_variables_multivalued('gene' = ';', 'phenotype_found_in' = ';', 'mod_types' = ';', 'species' = ';')
 
-  study = study("Rod_Mal_Phenotype", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 }

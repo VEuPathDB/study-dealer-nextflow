@@ -39,7 +39,7 @@ wrangle <- function() {
     set_variable_metadata('ascospore_morphology', display_name = "Ascospore Morphology", display_order=16, definition = "Ascospore Morphology") %>%
     modify_data(mutate(pubmed = as.character(pubmed)))
   
-  study = study("ncraOR74A_phenotype_knockout_mutants", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 

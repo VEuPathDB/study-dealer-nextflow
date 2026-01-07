@@ -9,12 +9,19 @@ if (length(args) < 2) {
   stop("usage:  wrangleAntibodyArray.R dataset type")
 }
 
-datasetScript <- paste0(my_r_lib, "/", args[2], "/", args[1], ".R");
+datasetName = args[1];
+datasetType = args[2];
+
+datasetScript <- paste0(my_r_lib, "/", datasetType, "/", datasetName, ".R");
 dataset_env <- new.env()
 
 source(datasetScript, local=dataset_env)
 
-study = dataset_env$wrangle()
+# Always assign the studyName to be the dataset name for uniqueness
+study <- dataset_env$wrangle() %>%
+  dataset_env$set_study_name(datasetName)
+
+
 
 if(!validate(study, profiles=c("baseline", "eda"))) {
   stop("Stopping....Study is not valid");

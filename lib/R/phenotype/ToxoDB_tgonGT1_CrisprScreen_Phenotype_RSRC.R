@@ -35,7 +35,7 @@ wrangle <- function() {
     set_variable_metadata('rank', display_order=3, hidden=list('variableTree'),  display_name = "Phenotype Rank", definition="Order/Rank or the Mean Phenotype Score")
 
 
-  crisprStudy = study("tgonGT1_crisprPhenotype_CrisprScreen", genePhenotype)
+  crisprStudy = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(crisprStudy)
 

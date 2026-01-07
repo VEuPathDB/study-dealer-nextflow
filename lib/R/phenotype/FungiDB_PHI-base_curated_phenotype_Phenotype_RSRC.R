@@ -56,7 +56,7 @@ wrangle <- function() {
     set_variable_metadata('Comments', display_order = 25, display_name = "Comments", definition = "Comments")
 
   # Create study entity
-  study = study("PHI-base_curated_phenotype", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 }

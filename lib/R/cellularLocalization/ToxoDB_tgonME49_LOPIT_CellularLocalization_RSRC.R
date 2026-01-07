@@ -128,7 +128,7 @@ wrangle <- function() {
     )
 
   # Create the study
-  lopitStudy <- study("tgonME49_cellularLocalization_LOPIT_CellularLocalization_RSRC", lopitEntity)
+  lopitStudy <- study(name="TEMP_STUDY_NAME", lopitEntity)
 
   return(lopitStudy)
 }

@@ -75,7 +75,7 @@ wrangle <- function() {
   message("\n=== Creating Study ===")
   study <- study_from_entities(
     entities = list(sample_entity, array_entity),
-    name = "PlasmoDB_Loffler_Natural_Infection_AntibodyArray_RSRC"
+    name = "TEMP_STUDY_NAME"
   )
   # Validate study
   message("\n=== Validating Study ===")

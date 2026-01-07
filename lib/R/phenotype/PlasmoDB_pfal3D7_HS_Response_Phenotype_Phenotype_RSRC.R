@@ -26,7 +26,7 @@ wrangle <- function() {
   genePhenotype <- genePhenotype %>%
     set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree'))
 
-  study = study("pfal3D7_phenotype_HS_Response_Phenotype", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 

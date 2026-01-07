@@ -86,7 +86,7 @@ wrangle <- function() {
 
   set_variable_metadata('gene', display_name = "Gene")
 
-  crisprStudy = study("tgonGT1_crisprPhenotype_CrisprFunctionalProfiling", genePhenotype)
-  
+  crisprStudy = study(name="TEMP_STUDY_NAME", genePhenotype)
+
   return(crisprStudy)
 }

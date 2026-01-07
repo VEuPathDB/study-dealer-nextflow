@@ -41,8 +41,8 @@ wrangle <- function() {
     modify_data(mutate(pubmedId = as.character(pubmedId)))
   
   
-  study = study("tbruTREU927_phenotype_Sanger_siRNA", genePhenotype)
-  
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
+
   return(study)
   
 }

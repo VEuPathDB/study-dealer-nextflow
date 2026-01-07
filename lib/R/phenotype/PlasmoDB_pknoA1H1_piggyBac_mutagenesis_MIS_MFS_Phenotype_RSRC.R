@@ -28,7 +28,7 @@ wrangle <- function() {
     set_variable_metadata('MIS.plus', display_order=2, display_name = "MIS Plus", definition = "MIS Plus") %>%
     set_variable_metadata('mutability', display_order=3, display_name = "Mutability in CDS", definition = "Mutability in CDS")
   
-  study = study("pknoA1H1_phenotype_piggyBac_mutagenesis_MIS_MFS", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 

@@ -37,7 +37,7 @@ wrangle <- function() {
     set_variable_metadata('temperature', display_order=7, display_name = "temperature", definition = "temperature") %>%
     set_variable_metadata('timepoint', display_order=8, display_name = "timepoint", definition = "timepoint")
 
-  study = study("ncraOR74A_phenotype_GeneImage_NAFeaturePhenotypeImage", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 

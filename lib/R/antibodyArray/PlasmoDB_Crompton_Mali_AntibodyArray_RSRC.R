@@ -99,7 +99,7 @@ wrangle <- function() {
 
   study <- study_from_entities(
     entities = list(sample_entity, array_entity),
-    name = "PlasmoDB_Crompton_Mali_AntibodyArray_RSRC"
+    name = "TEMP_STUDY_NAME"
   )
 
   # Validate study

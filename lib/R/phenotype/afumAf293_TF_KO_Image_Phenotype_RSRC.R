@@ -34,7 +34,7 @@ wrangle <- function() {
     set_variable_metadata('Timepoint', display_order=4, display_name = "Timepoint", definition = "Timepoint") %>%
     set_variable_metadata('Media', display_order=5, display_name = "Media", definition = "Media")
 
-  study = study("afumA1163_TF_KO_Image_NAFeaturePhenotypeImage", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 

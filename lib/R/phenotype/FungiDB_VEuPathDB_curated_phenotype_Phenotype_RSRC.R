@@ -39,8 +39,8 @@ wrangle <- function() {
     set_variable_metadata('chebiAnnotationExtension', display_order=11, display_name = "chebi Annotation Extension", definition = "chebi Annotation Extension") %>%
     modify_data(mutate(pubmedId = as.character(pubmedId)))
 
-  study = study("afumAf293_phenotype_VEuPathDB_curated_phenotype", genePhenotype)
-  
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
+
   return(study)
   
 }

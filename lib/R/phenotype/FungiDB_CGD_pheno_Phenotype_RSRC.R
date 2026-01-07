@@ -43,7 +43,7 @@ wrangle <- function() {
     set_variable_metadata('Reporter', display_order=14, display_name = "Reporter", definition = "Reporter") %>%
     set_variable_metadata('Virulence_Model', display_order=16, display_name = "Virulence Model", definition = "Virulence Model")
   
-  study = study("calbSC5314_phenotype_CGD_pheno", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 }

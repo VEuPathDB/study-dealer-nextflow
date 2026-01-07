@@ -29,7 +29,7 @@ wrangle <- function() {
     set_variable_metadata('mutant.fitness.score', display_order=2, display_name = "Mutant Fitness Score", definition="Mutant fitness score") %>%
     set_variable_metadata('mutagenesis.index.score', display_order=3, display_name = "Mutagenesis Index Score", definition="Mutagenesis index score")
 
-  study = study("pfal3D7_phenotype_pB_mutagenesis_MIS_MFS", genePhenotype)
+  study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
 
