@@ -29,6 +29,22 @@ wrangle <- function() {
 
   sample_entity = core_protein_array_env$createProteinArraySampleEntity(sampleEntityFile);
 
+  # Remove completely empty columns (all NA)
+  sample_entity <- sample_entity %>%
+    modify_data({
+      empty_cols <- (.) %>%
+        select(-SampleName) %>%
+        select(where(~all(is.na(.)))) %>%
+        names()
+
+      if (length(empty_cols) > 0) {
+        message("Removing ", length(empty_cols), " empty columns: ", paste(empty_cols, collapse=", "))
+        (.) %>% select(-all_of(empty_cols))
+      } else {
+        (.)
+      }
+    })
+
   # Apply display names and definitions from ontology mapping file
   sample_entity <- applyOntologyMapping(sample_entity, "header_ontology_mapping_deduplicated.txt")
 
