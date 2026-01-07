@@ -129,6 +129,7 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
       column_to_rownames("gene") %>%
       t() %>%
       as_tibble(rownames = "SampleName") %>%
+      mutate(SampleName = str_remove(SampleName, "^X(?=\\d)")) %>%  # Remove X prefix added by R for numeric names only
       mutate(dataset = dataset_name)
 
     message("  - ", nrow(profiles_transposed), " samples with dataset = '", dataset_name, "'")
