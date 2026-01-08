@@ -14,7 +14,7 @@ process wrangleSingleRnaSeqStudy {
     tuple val(study), path(dat), val(extDbNames)
 
     output:
-    tuple val(study), path("install.json"), path("*.cache")
+    tuple val(study), path("install.json"), path("*.cache"), val(extDbNames)
     path "strandedness_summary.tsv", optional: true, emit: strandedness_summary
 
     script:

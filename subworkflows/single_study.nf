@@ -27,8 +27,7 @@ workflow single_rnaseq_study {
     main:
     artifacts = wrangleSingleRnaSeqStudy(obj)
 
-    // TODO:  maybe use the vdi container with the gus environment.  We need ApiCommonData built
-    //loadVdiArtifacts(artifacts)
+    loadVdiArtifacts(artifacts)
 
     emit:
     strandedness_summary = wrangleSingleRnaSeqStudy.out.strandedness_summary

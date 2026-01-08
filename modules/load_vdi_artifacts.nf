@@ -4,20 +4,22 @@ nextflow.enable.dsl = 2
 
 
 process loadVdiArtifacts {
-    container "jbrestel/vdi-isasimple"
+    container "veupathdb/vdi-plugin-wrangler:latest"
 
+    maxForks: 5
+    
     input:
-    tuple val(datasetName), path(installJson), path(cache)
-
-
+    tuple val(study), path(installJson), path(cache), val(extDbNames)
+    path(strandSummary), optional: true
+    
     script:
     """
     ga ApiCommonData::Load::Plugin::InsertEdaEntityTypeAndStudy \
         --installJson install.json  \
         --studyFile study.cache \
         --entityTypeGraphFile entitytypegraph.cache  \
-        --extDbRlsSpec "$datasetName|%" \
-        --gusConfigFile ${params.gusHomeDir}/config/gus.config \
+        --extDbRlsSpec "${extDbNames.collect{ "${it}|%" }.join(',')}" \
+        --gusConfigFile ${params.gusConfigFile} \
         --commit
     """
 

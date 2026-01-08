@@ -42,8 +42,8 @@ process fileMatcher {
 
 
 process dumpEdaExternalDatabaseNames {
-    container "veupathdb/vdi-plugin-wrangler"
-
+    container "veupathdb/vdi-plugin-wrangler:latest"
+    
     output:
     path "external_database_names.txt"
 
@@ -59,7 +59,7 @@ process dumpEdaExternalDatabaseNames {
 
 
 process dumpAllExternalDatabaseNames {
-    container "veupathdb/vdi-plugin-wrangler"
+    container "veupathdb/vdi-plugin-wrangler:latest"
 
     output:
     path "all_external_database_names.txt"
