@@ -165,9 +165,9 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
   wranglerUtilsScript <- paste0(my_r_lib, "/utils.R")
   source(wranglerUtilsScript, local = wrangler_utils_env)
 
-  message("\n=== Creating Combined Antibody Microarray Data Entity ===")
+  message("\n=== Creating Combined Antibody Microarray Data Entity (Tall Format) ===")
 
-  # Process each profile file and collect transposed data
+  # Process each profile file and collect tall format data
   all_profiles <- list()
 
   for (file in profileFiles) {
@@ -185,25 +185,35 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
 
     profiles_data <- profiles_wide@data
 
-    # Transpose: convert from genes x samples to samples x genes
-    profiles_transposed <- profiles_data %>%
-      column_to_rownames("gene") %>%
-      t() %>%
-      as_tibble(rownames = "SampleName") %>%
-      mutate(dataset = dataset_name)
+    # Convert to tall format: each row is a sample-gene combination
+    profiles_tall <- profiles_data %>%
+      pivot_longer(
+        cols = -gene,
+        names_to = "SampleName",
+        values_to = "Score"
+      ) %>%
+      mutate(
+        # Remove X prefix added by R for numeric names
+        SampleName = str_remove(SampleName, "^X(?=\\d)"),
+        # Add dataset identifier
+        dataset = dataset_name
+      ) %>%
+      select(SampleName, gene, Score, dataset)
 
-    message("  - ", nrow(profiles_transposed), " samples with dataset = '", dataset_name, "'")
+    message("  - ", nrow(profiles_tall), " rows (sample-gene combinations) with dataset = '", dataset_name, "'")
 
-    all_profiles[[file]] <- profiles_transposed
+    all_profiles[[file]] <- profiles_tall
   }
 
-  # Combine all transposed profiles
+  # Combine all tall format profiles
   combined_profiles <- bind_rows(all_profiles)
 
-  message("\nCombined format: ", nrow(combined_profiles), " samples with ",
-          ncol(combined_profiles) - 2, " gene variables (plus SampleName and dataset)")
+  message("\nCombined tall format: ", nrow(combined_profiles), " rows (sample-gene combinations)")
+  message("  Samples: ", n_distinct(combined_profiles$SampleName))
+  message("  Genes: ", n_distinct(combined_profiles$gene))
+  message("  Datasets: ", n_distinct(combined_profiles$dataset))
 
-  # Create entity from the combined data
+  # Create entity from the combined tall data
   array_entity <- entity_from_tibble(
     combined_profiles,
     name = "AntibodyArray",
@@ -214,6 +224,12 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
     skip_type_convert = TRUE
   )
 
+  # Deal with the primary key (ID variable). Boilerplate
+  array_entity <- array_entity %>%
+    modify_data(mutate(ID = row_number())) %>%
+    sync_variable_metadata() %>%
+    redetect_column_as_id('ID')
+
   # Set variable metadata
   array_entity <- array_entity %>%
     set_variable_metadata('SampleName',
@@ -221,25 +237,26 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
                           definition = "Reference to parent Sample entity",
                           display_order = 1,
                           provider_label = list("Sample.Name")) %>%
+    set_variable_metadata('gene',
+                          display_name = "Gene",
+                          definition = "Gene identifier from the microarray",
+                          display_order = 2) %>%
+    set_variable_metadata('Score',
+                          display_name = "Normalized Intensity",
+                          definition = "Normalized antibody array intensity score",
+                          display_order = 3,
+                          data_shape = "continuous") %>%
     set_variable_metadata('dataset',
                           display_name = "Dataset",
-                          definition = "Source profile dataset") %>%
-    modify_data(mutate(ID = row_number())) %>%
-    sync_variable_metadata() %>%
-    redetect_column_as_id('ID') %>%
-    set_variable_display_names_from_provider_labels() %>%
-    set_parents("Sample", "SampleName")
+                          definition = "Source profile dataset",
+                          display_order = 4) %>%
+    set_parents(names = c('Sample'), id_columns = c('SampleName'))
 
-  # Get gene variables (exclude SampleName, dataset, and ID)
-  gene_vars <- array_entity %>%
-    get_variable_metadata() %>%
-    filter(!variable %in% c("SampleName", "dataset", "ID")) %>%
-    pull(variable)
-
+  # Create variable collection for the Score variable
   array_entity <- array_entity %>%
     create_variable_category(
       category_name = 'normalized_intensity',
-      children = gene_vars,
+      children = 'Score',
       display_name = 'Gene Antibody Array Intensities',
       definition = 'Gene Antibody Array Intensities'
     ) %>%

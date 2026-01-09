@@ -33,8 +33,8 @@ createProteinArrayAssayEntity <- function(file) {
 
   source(wranglerUtilsScript, local = wrangler_utils_env)
 
-  
-  message("\n=== Creating Antibody Microarray Data Entity ===")
+
+  message("\n=== Creating Antibody Microarray Data Entity (Tall Format) ===")
   # Load and preprocess profiles data
   # skip_type_convert since preprocessing already handles type conversion
   message("Loading profiles data...")
@@ -44,23 +44,29 @@ createProteinArrayAssayEntity <- function(file) {
     skip_type_convert = TRUE
   )
 
-  # Transpose: convert from genes x samples to samples x genes
-  message("Transposing profiles from genes x samples to samples x genes...")
   profiles_data <- profiles_wide@data
 
-  # Transpose the data
-  # First set gene column as rownames, transpose, then convert back to tibble
-  profiles_transposed <- profiles_data %>%
-    column_to_rownames("gene") %>%
-    t() %>%
-    as_tibble(rownames = "SampleName")
+  # Convert to tall format: each row is a sample-gene combination
+  message("Converting to tall format...")
+  profiles_tall <- profiles_data %>%
+    pivot_longer(
+      cols = -gene,
+      names_to = "SampleName",
+      values_to = "Score"
+    ) %>%
+    mutate(
+      # Remove X prefix added by R for numeric names
+      SampleName = str_remove(SampleName, "^X(?=\\d)")
+    ) %>%
+    select(SampleName, gene, Score)
 
-  message("Transposed format: ", nrow(profiles_transposed), " samples with ",
-          ncol(profiles_transposed) - 1, " gene variables")
+  message("Tall format: ", nrow(profiles_tall), " rows (sample-gene combinations)")
+  message("  Samples: ", n_distinct(profiles_tall$SampleName))
+  message("  Genes: ", n_distinct(profiles_tall$gene))
 
-  # Create entity from the transposed data
+  # Create entity from the tall data
   array_entity <- entity_from_tibble(
-    profiles_transposed,
+    profiles_tall,
     name = "AntibodyArray",
     display_name = "Antibody Microarray Assay",
     display_name_plural = "Antibody Microarray Assay",
@@ -69,34 +75,45 @@ createProteinArrayAssayEntity <- function(file) {
     skip_type_convert = TRUE
   )
 
-  # Set variable metadata for SampleName
+  # Deal with the primary key (ID variable). Boilerplate
+  array_entity <- array_entity %>%
+    modify_data(mutate(ID = row_number())) %>%
+    sync_variable_metadata() %>%
+    redetect_column_as_id('ID')
+
+  # Set variable metadata
   array_entity <- array_entity %>%
     set_variable_metadata('SampleName',
                           display_name = "Sample Name",
                           definition = "Reference to parent Sample entity",
                           display_order = 1,
-                          provider_label = list("Sample.Name"))  %>%
-    modify_data(mutate(ID = row_number())) %>%
-    sync_variable_metadata() %>%
-    redetect_column_as_id('ID') %>%
-    set_variable_display_names_from_provider_labels()  %>%
-    set_parents("Sample", "SampleName")
+                          provider_label = list("Sample.Name")) %>%
+    set_variable_metadata('gene',
+                          display_name = "Gene",
+                          definition = "Gene identifier from the microarray",
+                          display_order = 2) %>%
+    set_variable_metadata('Score',
+                          display_name = "Normalized Intensity",
+                          definition = "Normalized antibody array intensity score",
+                          display_order = 3,
+                          data_shape = "continuous") %>%
+    set_parents(names = c('Sample'), id_columns = c('SampleName'))
 
-  
-    array_entity <- array_entity %>%
-      create_variable_category(
-        category_name = 'normalized_intensity',
-        children = array_entity %>% get_variable_metadata() %>% pull(variable),
-        display_name = 'Gene Antibody Array Intensities',
-        definition = 'Gene Antibody Array Intensities'
-      ) %>%
-      create_variable_collection(
-        'normalized_intensity',
-        member = 'gene',
-        member_plural = 'genes',
-        is_proportion =  FALSE,
-        is_compositional = TRUE
-      )
+  # Create variable collection for the Score variable
+  array_entity <- array_entity %>%
+    create_variable_category(
+      category_name = 'normalized_intensity',
+      children = 'Score',
+      display_name = 'Gene Antibody Array Intensities',
+      definition = 'Gene Antibody Array Intensities'
+    ) %>%
+    create_variable_collection(
+      'normalized_intensity',
+      member = 'gene',
+      member_plural = 'genes',
+      is_proportion = FALSE,
+      is_compositional = TRUE
+    )
 
   return(array_entity)
 }
