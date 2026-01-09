@@ -14,8 +14,13 @@ wrangle <- function() {
 
   sample_entity = core_protein_array_env$createProteinArraySampleEntity(sampleEntityFile);
 
-  
-  
+  # Convert SampleName to character to match array entity type and make and redetect as id
+  sample_entity <- sample_entity %>%
+    modify_data(mutate(SampleName = as.character(SampleName))) %>%
+    redetect_column_as_id("SampleName") %>%
+    set_variable_metadata('SampleName', entity_name = 'Sample') %>%
+    sync_variable_metadata()
+
   # Add the Dataset Variable (here there is only one but adding to be consistent with other ab array studies)
   sample_entity <- sample_entity %>%
     modify_data(mutate(dataset = "Treatment-time to reinfection cohort from Kisumu area, Kenya collected in 2003")) %>%
@@ -31,8 +36,6 @@ wrangle <- function() {
 
 
   sample_entity <- sample_entity %>%
-    redetect_column_as_id("SampleName") %>%
-    set_variable_metadata('SampleName', entity_name = 'Sample') %>%
     set_variable_metadata('specimen',
                           display_name = "Sample Type") %>%
     set_variable_metadata('parasite.organism',
