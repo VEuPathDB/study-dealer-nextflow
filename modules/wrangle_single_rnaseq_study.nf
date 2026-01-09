@@ -8,7 +8,7 @@ process wrangleSingleRnaSeqStudy {
     errorStrategy 'ignore'
     maxForks 10
 
-    publishDir params.outputDir + "/${study}", mode: 'copy'
+//    publishDir params.outputDir + "/${study}", mode: 'copy'
 
     input:
     tuple val(study), path(dat), val(extDbNames)
