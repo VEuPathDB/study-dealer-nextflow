@@ -22,8 +22,14 @@ wrangle <- function() {
     sync_variable_metadata() %>%
     set_variable_metadata('dataset', display_name = "Dataset")
 
+  # Convert blood_smear_summary to character to avoid integer overflow
+  # (values are 12-digit encoded categorical data, not actual numeric measurements)
+  sample_entity <- sample_entity %>%
+    modify_data(mutate(blood_smear_summary = as.character(blood_smear_summary))) %>%
+    sync_variable_metadata() %>%
+    set_variable_metadata('blood_smear_summary', data_type = "string", data_shape = "categorical")
 
-  
+
   sample_entity <- sample_entity %>%
     redetect_column_as_id("SampleName") %>%
     set_variable_metadata('SampleName', entity_name = 'Sample') %>%
@@ -77,7 +83,8 @@ wrangle <- function() {
   message("\nSample entity summary:")
   inspect(sample_entity)
 
-  array_entity <- core_protein_array_env$createProteinArrayAssayEntity(antibodyArrayEntityFile);
+  array_entity <- core_protein_array_env$createProteinArrayAssayEntity(antibodyArrayEntityFile)  %>%
+    modify_data(mutate(SampleName = str_remove(SampleName, "^X(?=\\d)")))  # Remove X prefix added by R for numeric names only;
 
 
   # ===== VALIDATE ENTITIES =====
