@@ -2,6 +2,17 @@
 
 nextflow.enable.dsl = 2
 
+def addFileMetadataSampleDetails(file) {
+
+    // need to grab the study/dataset from the directory name
+    def matcher = (file.toString() =~ /\/([^\/]+?)\/entity-sample.+/)
+
+    def studyOrDatasetDirName = matcher[0][1];
+
+    return [ studyOrDatasetDirName, "SAMPLE_DETAILS", file, "" ]
+}
+
+
 
 process addOrganismPrefixAndFilterRows {
     container "veupathdb/alpine_bash:latest"

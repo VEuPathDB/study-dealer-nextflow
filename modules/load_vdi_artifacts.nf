@@ -10,7 +10,6 @@ process loadVdiArtifacts {
     
     input:
     tuple val(study), path(installJson), path(cache), val(extDbNames)
-    path(strandSummary), optional true
     
     script:
     """

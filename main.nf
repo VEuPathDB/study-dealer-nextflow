@@ -5,14 +5,14 @@ nextflow.enable.dsl = 2
 
 include { multiple_rnaseq_studies } from './workflows/multiple_rnaseq_studies'
 
+include { multiple_chipchip_studies } from './workflows/multiple_chipchip_studies'
+
 include { single_study } from './subworkflows/single_study'
 
 
 workflow {
 
     main:
-
-
 
     if(params.mode == "phenotype" ||
        params.mode == "antibodyArray" ||
@@ -26,9 +26,11 @@ workflow {
         multiple_rnaseq_studies()
     }
 
-    if(params.mode == "dnaseq_chipChip") {
-        // TODO 
+    if(params.mode == "chipChip") {
+        multiple_chipchip_studies()
     }
+
+
     if(params.mode == "dnaseq_chipSeq") {
         // TODO
     }

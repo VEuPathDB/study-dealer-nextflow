@@ -15,12 +15,14 @@ process wrangleSingleRnaSeqStudy {
 
     output:
     tuple val(study), path("install.json"), path("*.cache"), val(extDbNames)
-    path "strandedness_summary.tsv", optional: true, emit: strandedness_summary
+    path "strandedness_summary.tsv", emit: strandedness_summary
 
     script:
     """
     wrangleRNASeq.R
 
+    touch strandedness_summary.tsv
+    
     # Extract strandedness summary if report exists (skip the SUMMARY prefix field)
     if [ -f strandedness_report.txt ]; then
         grep "^SUMMARY" strandedness_report.txt | awk -F'\t' -v study="${study}" 'BEGIN{OFS="\t"} {print study, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9, \$10, \$11}' > strandedness_summary.tsv

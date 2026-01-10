@@ -12,6 +12,7 @@ include { dumpAllExternalDatabaseNames } from '../modules/utils'
 include { fileMatcher as fileMatcher_one } from '../modules/utils'
 include { fileMatcher as fileMatcher_two } from '../modules/utils'
 include { reportStudiesWithoutSampleDetails } from '../modules/utils'
+include { addFileMetadataSampleDetails } from '../modules/utils'
 
 def slurpJson(jsonFilePath) {
     def jsonSlurper = new JsonSlurper()
@@ -47,15 +48,6 @@ def addFileMetadataToCounts(file, datasetToStudyMap) {
 }
 
 
-def addFileMetadataSampleDetails(file) {
-
-    // need to grab the study/dataset from the directory name
-    def matcher = (file.toString() =~ /\/([^\/]+?)\/entity-sample.+/)
-
-    def studyOrDatasetDirName = matcher[0][1];
-
-    return [ studyOrDatasetDirName, "SAMPLE_DETAILS", file, "" ]
-}
 
 
 workflow multiple_rnaseq_studies {

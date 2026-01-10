@@ -6,6 +6,8 @@ include { wrangleSingleStudy } from '../modules/wrangle_single_study'
 
 include { wrangleSingleRnaSeqStudy } from '../modules/wrangle_single_rnaseq_study'
 
+include { wrangleSingleStfSampleStudy } from '../modules/wrangle_single_stf_sample_study'
+
 
 include { loadVdiArtifacts  } from '../modules/load_vdi_artifacts'
 
@@ -27,8 +29,20 @@ workflow single_rnaseq_study {
     main:
     artifacts = wrangleSingleRnaSeqStudy(obj)
 
-    loadVdiArtifacts(artifacts)
+    loadVdiArtifacts(artifacts[0])
 
     emit:
     strandedness_summary = wrangleSingleRnaSeqStudy.out.strandedness_summary
+}
+
+
+workflow single_stf_sample_study {
+    take:
+    obj
+
+    main:
+    artifacts = wrangleSingleStfSampleStudy(obj)
+
+    loadVdiArtifacts(artifacts)
+
 }
