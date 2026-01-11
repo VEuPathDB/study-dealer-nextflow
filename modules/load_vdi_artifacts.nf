@@ -13,10 +13,9 @@ process loadVdiArtifacts {
     
     script:
     """
-    ga ApiCommonData::Load::Plugin::InsertEdaEntityTypeAndStudy \
-        --installJson install.json  \
-        --studyFile study.cache \
-        --entityTypeGraphFile entitytypegraph.cache  \
+    ga ApiCommonData::Load::Plugin::InsertEdaStudyFromArtifacts \
+        --inputDirectory \$PWD  \
+        --outputDirectory \$PWD/loadArtifactsOut  \        
         --extDbRlsSpec "${extDbNames.collect{ "${it}|%" }.join(',')}" \
         --gusConfigFile ${params.gusConfigFile} \
         --commit
