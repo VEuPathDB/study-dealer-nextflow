@@ -61,7 +61,7 @@ process dumpEdaExternalDatabaseNames {
     script:
     """
     dumpEdaExternalDatabaseNames.pl \
-        --gusConfigFile ${params.gusHomeDir}/config/gus.config \
+        --gusConfigFile ${params.gusConfigFile} \
         --outputFile external_database_names.txt \
         --edaOnly \
         --verbose
@@ -78,7 +78,7 @@ process dumpAllExternalDatabaseNames {
     script:
     """
     dumpEdaExternalDatabaseNames.pl \
-        --gusConfigFile ${params.gusHomeDir}/config/gus.config \
+        --gusConfigFile ${params.gusConfigFile} \
         --outputFile all_external_database_names.txt \
         --verbose
     """

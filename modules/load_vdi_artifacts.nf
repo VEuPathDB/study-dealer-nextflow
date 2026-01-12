@@ -15,7 +15,7 @@ process loadVdiArtifacts {
     """
     ga ApiCommonData::Load::Plugin::InsertEdaStudyFromArtifacts \
         --inputDirectory \$PWD  \
-        --outputDirectory \$PWD/loadArtifactsOut  \        
+        --outputDirectory \$PWD/loadArtifactsOut  \
         --extDbRlsSpec "${extDbNames.collect{ "${it}|%" }.join(',')}" \
         --gusConfigFile ${params.gusConfigFile} \
         --commit
