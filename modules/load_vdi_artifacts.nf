@@ -6,6 +6,8 @@ nextflow.enable.dsl = 2
 process loadVdiArtifacts {
     container "veupathdb/vdi-plugin-wrangler:latest"
 
+    tag "plugin"
+    
     maxForks = 5
     
     input:
