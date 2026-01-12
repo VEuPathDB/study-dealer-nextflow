@@ -19,7 +19,7 @@ process wrangleSingleRnaSeqStudy {
 
     script:
     """
-    wrangleRNASeq.R
+    wrangleRNASeq.R $study
 
     touch strandedness_summary.tsv
     

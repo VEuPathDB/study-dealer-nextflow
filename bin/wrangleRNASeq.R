@@ -377,7 +377,7 @@ group_files_by_prefix <- function(filenames, pattern) {
 #
 # the main event... wrangle()
 #
-wrangle <- function() {
+wrangle <- function(studyName) {
 
   countsPattern = "_countsForEda_"
   wgcnaPattern = '_merged-0.25-eigengenes_'
@@ -437,7 +437,7 @@ wrangle <- function() {
   #return(list(samples = samples, all_counts_entities = all_counts_entities, all_wgcna_entities = all_wgcna_entities))
   
   study <- benchmark("create_study", {
-    study_from_entities(c(samples, all_counts_entities, all_wgcna_entities), name = "RNA-Seq study")
+    study_from_entities(c(samples, all_counts_entities, all_wgcna_entities), name=studyName)
   })
 
   print_benchmark_summary()
@@ -482,7 +482,10 @@ wgcnaData <- function(counts_filenames, orgAbbrev) {
   return(counts_data)
 }
 
-study = wrangle()
+args <- commandArgs(trailingOnly = TRUE)
+studyName = args[1];
+
+study = wrangle(studyName)
 
 if(!validate(study, profiles=c("baseline", "eda"))) {
   stop("Stopping....Study is not valid");
