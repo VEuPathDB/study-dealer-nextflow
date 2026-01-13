@@ -37,16 +37,25 @@ print_benchmark_summary <- function() {
 
 read_wgcna_data <- function(filename) {
   col_specs <- cols(
-    .default = 'd', 
+    .default = 'd',
     "Module" = col_character()
   )
 
-  data <- read_rnaseq_data_default(filename, col_specs) %>%
-    mutate(wgcna.ID = sample.ID) %>%
-    relocate(wgcna.ID, .after = sample.ID) %>%
-    rename(assay.ID = sample.ID)
+  # Read and transpose as before
+  data <- read_rnaseq_data_default(filename, col_specs)
 
-  
+  # Convert from wide to tall format
+  # Wide format: sample.ID | ME_module1 | ME_module2 | ...
+  # Tall format: sample.ID | Module | Score
+  data <- data %>%
+    pivot_longer(
+      cols = -sample.ID,
+      names_to = "Module",
+      values_to = "Score"
+    ) %>%
+    mutate(wgcna.ID = paste(sample.ID, Module, sep = ".")) %>%
+    relocate(wgcna.ID, .after = sample.ID)
+
   return(data)
 }
 
@@ -277,59 +286,98 @@ rename_counts_by_strandedness <- function(counts_list, orgAbbrev) {
   return(counts_list);
 }
 
-counts_to_entity <- function(tbl, name, orgAbbrev) {
+# Convert wide format counts to tall format and merge sense/antisense
+merge_sense_antisense_to_tall <- function(counts_list, orgAbbrev) {
 
-  # strip off the prefix
-  name = sub(glue("{orgAbbrev}_"), "", name);
+  # Check if we have both Sense and Antisense
+  prefix <- paste0(orgAbbrev, "_")
+  sense_name <- paste0(prefix, "Sense")
+  antisense_name <- paste0(prefix, "Antisense")
+  unstranded_name <- paste0("unstranded_", orgAbbrev)
 
-  
-  assays <- benchmark(paste("entity_from_tibble", name), {
+  if (unstranded_name %in% names(counts_list)) {
+    # Handle unstranded case - just convert to tall format
+    tbl <- counts_list[[unstranded_name]]
+
+    tall_data <- tbl %>%
+      pivot_longer(
+        cols = -c(sample.ID, assay.ID),
+        names_to = "Gene",
+        values_to = "Count"
+      ) %>%
+      mutate(assay.ID = paste(sample.ID, Gene, sep = ".")) %>%
+      select(assay.ID, sample.ID, Gene, Count)
+
+    return(list(tall_data))
+
+  } else if (sense_name %in% names(counts_list) && antisense_name %in% names(counts_list)) {
+    # Handle sense/antisense case - merge them
+    sense_tbl <- counts_list[[sense_name]]
+    antisense_tbl <- counts_list[[antisense_name]]
+
+    # Convert sense to tall format
+    sense_tall <- sense_tbl %>%
+      pivot_longer(
+        cols = -c(sample.ID, assay.ID),
+        names_to = "Gene",
+        values_to = "Sense.Count"
+      ) %>%
+      select(sample.ID, Gene, Sense.Count)
+
+    # Convert antisense to tall format
+    antisense_tall <- antisense_tbl %>%
+      pivot_longer(
+        cols = -c(sample.ID, assay.ID),
+        names_to = "Gene",
+        values_to = "Antisense.Count"
+      ) %>%
+      select(sample.ID, Gene, Antisense.Count)
+
+    # Merge on sample.ID and Gene
+    merged_tall <- sense_tall %>%
+      inner_join(antisense_tall, by = c("sample.ID", "Gene")) %>%
+      mutate(assay.ID = paste(sample.ID, Gene, sep = ".")) %>%
+      relocate(assay.ID, .before = sample.ID)
+
+    return(list(merged_tall))
+
+  } else {
+    stop("Unexpected counts_list structure")
+  }
+}
+
+counts_to_entity <- function(tbl, orgAbbrev) {
+
+  assays <- benchmark(paste("entity_from_tibble", orgAbbrev), {
     entity_from_tibble(
       tbl,
-      name = glue("{orgAbbrev} {name} counts"),
-      display_name = glue("{orgAbbrev} {name} htseq counts"),
-      display_name_plural = glue("{orgAbbrev} {name} htseq counts"),
+      name = glue("{orgAbbrev} htseq counts"),
+      display_name = glue("{orgAbbrev} htseq counts"),
+      display_name_plural = glue("{orgAbbrev} htseq counts"),
       skip_type_convert = TRUE
     ) %>%
       set_parents('sample', 'sample.ID') %>%
-  ##    set_variable_display_names_from_provider_labels() %>%
       set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree')) %>%
-      set_variable_metadata('assay.ID', display_name = "HTSeq Count", hidden=list('variableTree'))
+      set_variable_metadata('assay.ID', display_name = "Assay ID", hidden=list('variableTree')) %>%
+      set_variable_metadata('Gene', display_name = "Gene")
   })
 
-  assays <- benchmark(paste("set_stable_ids", name), {
-    # Directly mutate the variables tibble instead of using reduce()
-    gene_idx <- assays@variables$data_type != 'id'
-    assays@variables$stable_id[gene_idx] <- assays@variables$variable[gene_idx]
-    assays@variables$display_name[gene_idx] <- assays@variables$variable[gene_idx]
-    assays
-  })
-
-
-  
-  assays <- benchmark(paste("create_variable_metadata", name), {
-    assays %>%
-      create_variable_category(
-        category_name = 'gene_counts',
-        children = assays %>% get_variable_metadata() %>% pull(variable),
-        display_name = 'Gene counts',
-        definition = 'Counts per gene from RNA-Seq'
-      ) %>%
-      create_variable_collection(
-        'gene_counts',
-        member = 'gene',
-        member_plural = 'genes',
-        is_proportion = FALSE,
-        is_compositional = TRUE
-      )
-  })
+  # Set display names for count columns
+  if ("Sense.Count" %in% colnames(tbl)) {
+    assays <- assays %>%
+      set_variable_metadata('Sense.Count', display_name = "Sense Count") %>%
+      set_variable_metadata('Antisense.Count', display_name = "Antisense Count")
+  } else if ("Count" %in% colnames(tbl)) {
+    assays <- assays %>%
+      set_variable_metadata('Count', display_name = "Count")
+  }
 
   assays
 }
 
 
 wgcna_to_entity <- function(tbl, name, orgAbbrev) {
-  
+
   assays <- benchmark(paste("wgcna_entity_from_tibble", name), {
     entity_from_tibble(
       tbl,
@@ -339,28 +387,11 @@ wgcna_to_entity <- function(tbl, name, orgAbbrev) {
       skip_type_convert = TRUE
       #TO DO, description = ???
     ) %>%
-      set_parents(glue("{orgAbbrev} Sense counts"), 'assay.ID') %>%
-      set_variable_display_names_from_provider_labels() %>%
-      set_variable_metadata('assay.ID', display_name = "Assay ID", hidden=list('variableTree')) %>%
-      set_variable_metadata('wgcna.ID', display_name = "WGCNA ID", hidden=list('variableTree'))
-  })
-
-  assays <- benchmark(paste("wgcna_variable_metadata", name), {
-    assays %>%
-      create_variable_category(
-        category_name = 'wgcna',
-        children = assays %>% get_variable_metadata() %>% pull(variable),
-        display_name = 'Eigengenes',
-        definition = 'Eigengene from RNA-Seq'
-      ) %>%
-      create_variable_collection(
-        'wgcna',
-        member = 'eigengene',
-        member_plural = 'eigengenes',
-        stable_id =  "EUPATH_0005051",
-        is_proportion =  FALSE,
-        is_compositional = FALSE
-      )
+      set_parents('sample', 'sample.ID') %>%
+      set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree')) %>%
+      set_variable_metadata('wgcna.ID', display_name = "WGCNA ID", hidden=list('variableTree')) %>%
+      set_variable_metadata('Module', display_name = "Module", stable_id = "EUPATH_0005051") %>%
+      set_variable_metadata('Score', display_name = "Principal Component (PC) Score")
   })
 
   assays
@@ -453,14 +484,19 @@ countsData <- function(counts_filenames, orgAbbrev) {
       set_names() %>%
       map(read_rnaseq_data)
   })
-  
+
   counts_data <- benchmark(paste("rename_strandedness", orgAbbrev), {
     rename_counts_by_strandedness(counts_data, orgAbbrev)
   })
 
-  counts_data <- benchmark(paste("convert_to_entities", orgAbbrev), {
-    counts_data %>%
-      imap(counts_to_entity, orgAbbrev)
+  # Merge sense and antisense to tall format
+  counts_data <- benchmark(paste("merge_to_tall", orgAbbrev), {
+    merge_sense_antisense_to_tall(counts_data, orgAbbrev)
+  })
+
+  # Convert to entity (now just one entity per organism)
+  counts_data <- benchmark(paste("convert_to_entity", orgAbbrev), {
+    list(counts_to_entity(counts_data[[1]], orgAbbrev))
   })
 
   return(counts_data)
