@@ -8,7 +8,7 @@ wrangle <- function() {
   genePhenotype = entity_from_file("ko_mutants_final_09_12_18.txt")
 
   # Set meta data for entity
- genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
+ genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="GENE_PHENOTYPE_DATA_ENTITY", display_name_plural="Gene Phenotype Data")
 
   #default column/variable labels
  genePhenotype <- genePhenotype %>%  set_variable_display_names_from_provider_labels()
@@ -21,7 +21,7 @@ wrangle <- function() {
 
 
   genePhenotype <- genePhenotype %>%
-    set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
+    set_variable_metadata('gene', stable_id = "VEUPATHDB_GENE_ID", display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
     set_variable_metadata('pubmed', display_name = "Pubmed", display_order=2, definition = "Pubmed", data_type = "string", data_shape = "categorical") %>%
     set_variable_metadata('gene_classification', display_name = "Gene Classification", display_order=3,definition = "Gene Classification", hidden=list('variableTree')) %>%
     set_variable_metadata('fgsc', display_name = "FGSC ID", display_order=4,definition = "FGSC ID", hidden=list('variableTree')) %>%

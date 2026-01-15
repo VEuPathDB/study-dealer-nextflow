@@ -354,22 +354,23 @@ counts_to_entity <- function(tbl, orgAbbrev) {
       name = glue("{orgAbbrev} htseq counts"),
       display_name = glue("{orgAbbrev} htseq counts"),
       display_name_plural = glue("{orgAbbrev} htseq counts"),
+      stable_id = "GENE_EXPRESSION_RNASEQ_DATA",
       skip_type_convert = TRUE
     ) %>%
       set_parents('sample', 'sample.ID') %>%
       set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree')) %>%
       set_variable_metadata('assay.ID', display_name = "Assay ID", hidden=list('variableTree')) %>%
-      set_variable_metadata('Gene', display_name = "Gene")
+      set_variable_metadata('Gene', display_name = "Gene", stable_id = "VEUPATHDB_GENE_ID")
   })
 
   # Set display names for count columns
   if ("Sense.Count" %in% colnames(tbl)) {
     assays <- assays %>%
-      set_variable_metadata('Sense.Count', display_name = "Sense Count") %>%
-      set_variable_metadata('Antisense.Count', display_name = "Antisense Count")
+      set_variable_metadata('Sense.Count', display_name = "Sense Count", stable_id="SEQUENCE_READ_COUNT_SENSE") %>%
+      set_variable_metadata('Antisense.Count', display_name = "Antisense Count", stable_id="SEQUENCE_READ_COUNT_ANTISENSE")
   } else if ("Count" %in% colnames(tbl)) {
     assays <- assays %>%
-      set_variable_metadata('Count', display_name = "Count")
+      set_variable_metadata('Count', display_name = "Count", stable_id="SEQUENCE_READ_COUNT")
   }
 
   assays
@@ -384,14 +385,15 @@ wgcna_to_entity <- function(tbl, name, orgAbbrev) {
       name = glue("{orgAbbrev} eigengene"),
       display_name = glue("{orgAbbrev} Eigengene (wgcna)"),
       display_name_plural = glue("{orgAbbrev} Eigengenes (wgcna)"),
+      stable_id = "WGCNA_DATA",
       skip_type_convert = TRUE
       #TO DO, description = ???
     ) %>%
       set_parents('sample', 'sample.ID') %>%
       set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree')) %>%
       set_variable_metadata('wgcna.ID', display_name = "WGCNA ID", hidden=list('variableTree')) %>%
-      set_variable_metadata('Module', display_name = "Module", stable_id = "EUPATH_0005051") %>%
-      set_variable_metadata('Score', display_name = "Principal Component (PC) Score")
+      set_variable_metadata('Module', display_name = "Module", stable_id = "WGCNA_MODULE") %>%
+      set_variable_metadata('Score', display_name = "Score", stable_id = "WGCNA_SCORE")
   })
 
   assays

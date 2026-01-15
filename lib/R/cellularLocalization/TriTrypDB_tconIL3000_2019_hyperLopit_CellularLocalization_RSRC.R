@@ -36,7 +36,7 @@ wrangle <- function() {
     name = "hyperLopitData",
     display_name = "hyperLOPIT Data",
     display_name_plural = "hyperLOPIT Data",
-    stable_id = "hyperLopitData"
+    stable_id = "GENE_HYPERLOPIT_DATA"
   )
 
   # Set default column/variable labels from provider labels
@@ -48,6 +48,7 @@ wrangle <- function() {
     redetect_columns_as_variables('gene') %>%
     set_variable_metadata('gene',
                          display_name = "Gene",
+                         stable_id = "VEUPATHDB_GENE_ID",
                          provider_label = list("gene"),
                          display_order = 1,
                          hidden = list('variableTree'))

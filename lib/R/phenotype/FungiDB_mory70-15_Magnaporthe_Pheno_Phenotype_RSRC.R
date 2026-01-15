@@ -9,7 +9,7 @@ wrangle <- function() {
   genePhenotype = entity_from_file("phenotype_with_names.txt")
   
   # Set meta data for entity
-  genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
+  genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="GENE_PHENOTYPE_DATA_ENTITY", display_name_plural="Gene Phenotype Data")
   
   # make gene column a variable
   genePhenotype <- genePhenotype %>% redetect_columns_as_variables('gene')
@@ -24,7 +24,7 @@ wrangle <- function() {
     redetect_column_as_id('ID')
   
   genePhenotype <- genePhenotype %>%
-    set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
+    set_variable_metadata('gene', stable_id = "VEUPATHDB_GENE_ID", display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
     set_variable_metadata('pubmedId', display_order=2, display_name = "Pubmed ID", definition = "Pubmed ID", data_type = "string", data_shape = "categorical") %>%
     set_variable_metadata('organism', display_order=3, display_name = "Organism", definition = "Organism") %>%
     set_variable_metadata('qualityTerm', display_order=5, display_name = "Quality Term ID", definition = "Quality Term ID", hidden=list('variableTree')) %>%

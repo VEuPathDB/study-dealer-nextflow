@@ -71,40 +71,12 @@ wrangle <- function() {
   # Process each profile file individually and combine
   array_entity <- core_protein_array_env$createCombinedProteinArrayAssayEntity(profileFiles, my_r_lib)
 
-  # ===== VALIDATE ENTITIES =====
-  message("\n=== Validating Entities ===")
-  sample_validation <- validate(sample_entity, profile = "eda")
-  if (!is.null(sample_validation) && length(sample_validation) > 0) {
-    warning("Sample entity validation issues:")
-    print(sample_validation)
-  } else {
-    message("Sample entity validation passed!")
-  }
-
-  array_validation <- validate(array_entity, profile = "eda")
-  if (!is.null(array_validation) && length(array_validation) > 0) {
-    warning("Antibody Array entity validation issues:")
-    print(array_validation)
-  } else {
-    message("Antibody Array entity validation passed!")
-  }
-
   # ===== CREATE STUDY =====
   message("\n=== Creating Study ===")
   study <- study_from_entities(
     entities = list(sample_entity, array_entity),
     name = "TEMP_STUDY_NAME"
   )
-  # Validate study
-  message("\n=== Validating Study ===")
-  study_validation <- validate(study, profile = "eda")
-  if (!is.null(study_validation) && length(study_validation) > 0) {
-    warning("Study validation issues:")
-    print(study_validation)
-  } else {
-    message("Study validation passed!")
-  }
-
   return(study)
 }
 

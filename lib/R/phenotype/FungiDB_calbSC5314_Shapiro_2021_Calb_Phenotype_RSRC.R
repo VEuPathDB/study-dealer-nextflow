@@ -10,7 +10,7 @@ wrangle <- function() {
   genePhenotype = entity_from_file("merged_phenotypes_scores.txt")
 
   # Set meta data for entity
- genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
+ genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="GENE_PHENOTYPE_DATA_ENTITY", display_name_plural="Gene Phenotype Data")
 
    # make gene column a variable
  genePhenotype <- genePhenotype %>% redetect_columns_as_variables('gene')
@@ -25,7 +25,7 @@ wrangle <- function() {
    redetect_column_as_id('ID')
 
 genePhenotype <- genePhenotype %>%
-  set_variable_metadata('gene', display_order=1, display_name="Gene", definition="Gene") %>%
+  set_variable_metadata('gene', stable_id = "VEUPATHDB_GENE_ID", display_order=1, display_name="Gene", definition="Gene",  hidden=list('variableTree')) %>%
   set_variable_metadata('OD600_biofilm_no_dox', display_order=2, display_name="1: OD600 of biofilm growth RPMI-MOPS 37C WITHOUT DOX [pmid:31235750]", definition="1: OD600 of biofilm growth RPMI-MOPS 37C WITHOUT DOX [pmid:31235750]") %>%
   set_variable_metadata('OD600_biofilm_with_dox', display_order=3, display_name="2: OD600 of biofilm growth RPMI-MOPS 37C WITH DOX [pmid:31235750]", definition="2: OD600 of biofilm growth RPMI-MOPS 37C WITH DOX [pmid:31235750]") %>%
   set_variable_metadata('OD600_diff_biofilm', display_order=4, display_name="3: OD600 differential of biofilm growth ([RPMI-MOPS + DOX] - [RPMI-MOPS]) [pmid:31235750]", definition="3: OD600 differential of biofilm growth ([RPMI-MOPS + DOX] - [RPMI-MOPS]) [pmid:31235750]") %>%

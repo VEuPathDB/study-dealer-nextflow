@@ -35,7 +35,7 @@ wrangle <- function() {
   genePhenotype = entity_from_tibble(joined_data)
 
   # Set meta data for entity
-  genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
+  genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="GENE_PHENOTYPE_DATA_ENTITY", display_name_plural="Gene Phenotype Data")
 
   # make gene column a variable (using DDB_G_ID as the gene identifier)
   #genePhenotype <- genePhenotype %>% redetect_columns_as_variables('DDB_G_ID')
@@ -50,7 +50,7 @@ wrangle <- function() {
     redetect_column_as_id('ID')
 
   genePhenotype <- genePhenotype %>%
-    set_variable_metadata('gene', display_name = "Gene", provider_label=list("DDB_G_ID"), display_order=1, hidden=list('variableTree')) %>%
+    set_variable_metadata('gene', stable_id = "VEUPATHDB_GENE_ID", display_name = "Gene", provider_label=list("DDB_G_ID"), display_order=1, hidden=list('variableTree')) %>%
     set_variable_metadata('Systematic_Name', display_order=2, display_name = "Systematic Name", definition = "Systematic Name") %>%
     set_variable_metadata('Strain.Descriptor', display_order=3, display_name = "Strain Descriptor", definition = "Strain Descriptor") %>%
     set_variables_multivalued('gene' = ' | ', 'Phenotypes' = ' | ')

@@ -71,7 +71,7 @@ createProteinArrayAssayEntity <- function(file) {
     display_name = "Antibody Microarray Assay",
     display_name_plural = "Antibody Microarray Assay",
     description = "P. falciparum protein microarray antibody response data",
-    stable_id = prefixed_alphanumeric_id(prefix = "ENT_", length = 8, seed_string = "AntibodyArray"),
+    stable_id = "GENE_ANTIBODY_ARRAY_DATA",
     skip_type_convert = TRUE
   )
 
@@ -90,30 +90,17 @@ createProteinArrayAssayEntity <- function(file) {
                           provider_label = list("Sample.Name")) %>%
     set_variable_metadata('gene',
                           display_name = "Gene",
+                          stable_id = "VEUPATHDB_GENE_ID",
                           definition = "Gene identifier from the microarray",
                           display_order = 2) %>%
     set_variable_metadata('Score',
                           display_name = "Normalized Intensity",
+                          stable_id = "NORMALIZED_INTENSITY",
                           definition = "Normalized antibody array intensity score",
                           display_order = 3,
                           data_shape = "continuous") %>%
     set_parents(names = c('Sample'), id_columns = c('SampleName'))
 
-  # Create variable collection for the Score variable
-  array_entity <- array_entity %>%
-    create_variable_category(
-      category_name = 'normalized_intensity',
-      children = 'Score',
-      display_name = 'Gene Antibody Array Intensities',
-      definition = 'Gene Antibody Array Intensities'
-    ) %>%
-    create_variable_collection(
-      'normalized_intensity',
-      member = 'gene',
-      member_plural = 'genes',
-      is_proportion = FALSE,
-      is_compositional = TRUE
-    )
 
   return(array_entity)
 }
@@ -189,7 +176,7 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
     display_name = "Antibody Microarray Assay",
     display_name_plural = "Antibody Microarray Assay",
     description = "P. falciparum protein microarray antibody response data",
-    stable_id = prefixed_alphanumeric_id(prefix = "ENT_", length = 8, seed_string = "AntibodyArray"),
+    stable_id = "GENE_ANTIBODY_ARRAY_DATA",
     skip_type_convert = TRUE
   )
 
@@ -207,11 +194,13 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
                           display_order = 1,
                           provider_label = list("Sample.Name")) %>%
     set_variable_metadata('gene',
+                          stable_id = "VEUPATHDB_GENE_ID",
                           display_name = "Gene",
                           definition = "Gene identifier from the microarray",
                           display_order = 2) %>%
     set_variable_metadata('Score',
                           display_name = "Normalized Intensity",
+                          stable_id = "NORMALIZED_INTENSITY",
                           definition = "Normalized antibody array intensity score",
                           display_order = 3,
                           data_shape = "continuous") %>%
@@ -221,21 +210,6 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
                           display_order = 4) %>%
     set_parents(names = c('Sample'), id_columns = c('SampleName'))
 
-  # Create variable collection for the Score variable
-  array_entity <- array_entity %>%
-    create_variable_category(
-      category_name = 'normalized_intensity',
-      children = 'Score',
-      display_name = 'Gene Antibody Array Intensities',
-      definition = 'Gene Antibody Array Intensities'
-    ) %>%
-    create_variable_collection(
-      'normalized_intensity',
-      member = 'gene',
-      member_plural = 'genes',
-      is_proportion = FALSE,
-      is_compositional = TRUE
-    )
 
   return(array_entity)
 }
