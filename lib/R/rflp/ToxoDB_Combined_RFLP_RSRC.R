@@ -69,7 +69,7 @@ wrangle <- function() {
     display_name = "RFLP Isolate",
     display_name_plural = "RFLP Isolates",
     description = "Restriction Fragment Length Polymorphism (RFLP) genotyping data for Toxoplasma gondii isolates",
-    stable_id = prefixed_alphanumeric_id(prefix = "ENT_", length = 8, seed_string = "RFLPIsolate")
+    stable_id = "RFLP_ISOLATE"
   )
 
   # Set variable display names from provider labels

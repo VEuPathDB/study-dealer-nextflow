@@ -12,7 +12,7 @@ wrangle <- function() {
   genePhenotype <- genePhenotype %>% modify_data(select(-Sexual_Development))
 
   # Set meta data for entity
- genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeImageData", display_name = "Phenotype Image Collection", stable_id="genePhenotypeImageCollection", display_name_plural="Gene Phenotype Image Collection")
+ genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeImageData", display_name = "Phenotype Image Collection", stable_id="GENE_PHENOTYPE_IMAGE_ENTITY", display_name_plural="Gene Phenotype Image Collection")
 
    # make gene column a variable
  genePhenotype <- genePhenotype %>% redetect_columns_as_variables('gene')
@@ -28,7 +28,7 @@ wrangle <- function() {
    redetect_columns_as_variables(c('Image'))
 
   genePhenotype <- genePhenotype %>%
-    set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
+    set_variable_metadata('gene', stable_id = "VEUPATHDB_GENE_ID", display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
     set_variable_metadata('Image', display_order=2, display_name = "Image", definition = "Image") %>%
     set_variable_metadata('location', display_order=3, display_name = "location", definition = "location") %>%
     set_variable_metadata('media', display_order=4, display_name = "media", definition = "media") %>%

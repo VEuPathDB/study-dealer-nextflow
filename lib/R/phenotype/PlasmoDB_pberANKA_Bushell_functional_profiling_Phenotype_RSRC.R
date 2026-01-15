@@ -8,7 +8,7 @@ wrangle <- function() {
   genePhenotype = entity_from_file("phenotype_growth_rates.txt")
   
   # Set meta data for entity
-  genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="genePhenotypeData", display_name_plural="Gene Phenotype Data")
+  genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeData", display_name = "Gene Phenotype Data", stable_id="GENE_PHENOTYPE_DATA_ENTITY", display_name_plural="Gene Phenotype Data")
   
   # default column/variable labels
   genePhenotype <- genePhenotype %>%  set_variable_display_names_from_provider_labels()
@@ -25,7 +25,7 @@ wrangle <- function() {
   
   # update columns as needed
   genePhenotype <- genePhenotype %>%
-    set_variable_metadata('gene', display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree'))  %>%
+    set_variable_metadata('gene', stable_id = "VEUPATHDB_GENE_ID", display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree'))  %>%
     set_variable_metadata('phenotype', display_order=2, display_name = "Phenotype", definition = "Phenotype") %>%
     set_variable_metadata('relative_growth_rate', display_order=3, display_name = "Relative Growth Rate", definition = "Relative Growth Rate") %>%
     set_variable_metadata('confidence', display_order=4, display_name = "Confidence", definition = "Confidence") %>%

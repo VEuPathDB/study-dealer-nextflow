@@ -13,7 +13,7 @@ wrangle <- function() {
     set_entity_metadata(
       name = "genePhenotypeData", 
       display_name = "Gene Phenotype Data", 
-      stable_id = "genePhenotypeData", 
+      stable_id = "GENE_PHENOTYPE_DATA_ENTITY", 
       display_name_plural = "Gene Phenotype Data"
     )
 
@@ -30,7 +30,7 @@ wrangle <- function() {
   # Set variable metadata with display_order, display_name, and definition
   genePhenotype <- genePhenotype %>%
     set_variable_metadata('phenotype_id', display_order = 1, display_name = "phenotype_id", hidden=list('variableTree')) %>%
-    set_variable_metadata('gene', display_order = 2, display_name = "Gene", definition = "Gene") %>%
+    set_variable_metadata('gene', stable_id = "VEUPATHDB_GENE_ID", display_order = 2, display_name = "Gene", definition = "Gene", hidden=list('variableTree')) %>%
     set_variable_metadata('PHI.base.entry', display_order = 3, display_name = "PHI-base Entry", definition = "PHI.base.entry") %>%
     set_variable_metadata('Essential.gene', display_order = 4, display_name = "Essential Gene", definition = "Essential.gene") %>%
     set_variable_metadata('Multiple.mutations', display_order = 5, display_name = "Multiple Mutations", definition = "Multiple.mutations") %>%
