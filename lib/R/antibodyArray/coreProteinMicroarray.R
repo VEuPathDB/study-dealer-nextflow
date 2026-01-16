@@ -27,7 +27,7 @@ createProteinArraySampleEntity <- function(file) {
 
 
 
-createProteinArrayAssayEntity <- function(file) {
+createProteinArrayAssayEntity <- function(file, strip_x_prefix = TRUE) {
   wrangler_utils_env <- new.env()
   wranglerUtilsScript <- paste0(my_r_lib, "/utils.R");
 
@@ -54,11 +54,13 @@ createProteinArrayAssayEntity <- function(file) {
       names_to = "SampleName",
       values_to = "Score"
     ) %>%
-    mutate(
-      # Remove X prefix added by R for numeric names
-      SampleName = str_remove(SampleName, "^X(?=\\d)")
-    ) %>%
     select(SampleName, gene, Score)
+
+  # Optionally remove X prefix added by R for numeric names
+  if (strip_x_prefix) {
+    profiles_tall <- profiles_tall %>%
+      mutate(SampleName = str_remove(SampleName, "^X(?=\\d)"))
+  }
 
   message("Tall format: ", nrow(profiles_tall), " rows (sample-gene combinations)")
   message("  Samples: ", n_distinct(profiles_tall$SampleName))
@@ -116,7 +118,7 @@ createProteinArrayAssayEntity <- function(file) {
 #' @param profileFiles Vector of profile file names
 #' @param my_r_lib Path to the R library directory
 #' @return Combined array entity
-createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
+createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib, strip_x_prefix = TRUE) {
   wrangler_utils_env <- new.env()
   wranglerUtilsScript <- paste0(my_r_lib, "/utils.R")
   source(wranglerUtilsScript, local = wrangler_utils_env)
@@ -149,12 +151,16 @@ createCombinedProteinArrayAssayEntity <- function(profileFiles, my_r_lib) {
         values_to = "Score"
       ) %>%
       mutate(
-        # Remove X prefix added by R for numeric names
-        SampleName = str_remove(SampleName, "^X(?=\\d)"),
         # Add dataset identifier
         dataset = dataset_name
       ) %>%
       select(SampleName, gene, Score, dataset)
+
+    # Optionally remove X prefix added by R for numeric names
+    if (strip_x_prefix) {
+      profiles_tall <- profiles_tall %>%
+        mutate(SampleName = str_remove(SampleName, "^X(?=\\d)"))
+    }
 
     message("  - ", nrow(profiles_tall), " rows (sample-gene combinations) with dataset = '", dataset_name, "'")
 
