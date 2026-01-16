@@ -188,7 +188,7 @@ wrangle <- function() {
   message("\nSample entity summary:")
   inspect(sample_entity)
 
-  array_entity <- core_protein_array_env$createProteinArrayAssayEntity(antibodyArrayEntityFile);
+  array_entity <- core_protein_array_env$createProteinArrayAssayEntity(antibodyArrayEntityFile, strip_x_prefix = FALSE);
 
   # ===== CREATE STUDY =====
   message("\n=== Creating Study ===")
