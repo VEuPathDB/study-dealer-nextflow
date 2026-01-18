@@ -44,17 +44,11 @@ read_wgcna_data <- function(filename) {
   # Read and transpose as before
   data <- read_rnaseq_data_default(filename, col_specs)
 
-  # Convert from wide to tall format
-  # Wide format: sample.ID | ME_module1 | ME_module2 | ...
-  # Tall format: sample.ID | Module | Score
+  # Keep wide format: assay.ID | wgcna.ID | ME_module1 | ME_module2 | ...
   data <- data %>%
-    pivot_longer(
-      cols = -sample.ID,
-      names_to = "Module",
-      values_to = "Score"
-    ) %>%
-    mutate(wgcna.ID = paste(sample.ID, Module, sep = ".")) %>%
-    relocate(wgcna.ID, .after = sample.ID)
+    mutate(wgcna.ID = sample.ID) %>%
+    relocate(wgcna.ID, .after = sample.ID) %>%
+    rename(assay.ID = sample.ID)
 
   return(data)
 }
@@ -389,11 +383,28 @@ wgcna_to_entity <- function(tbl, name, orgAbbrev) {
       skip_type_convert = TRUE
       #TO DO, description = ???
     ) %>%
-      set_parents('sample', 'sample.ID') %>%
-      set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree')) %>%
-      set_variable_metadata('wgcna.ID', display_name = "WGCNA ID", hidden=list('variableTree')) %>%
-      set_variable_metadata('Module', display_name = "Module", stable_id = "WGCNA_MODULE") %>%
-      set_variable_metadata('Score', display_name = "Score", stable_id = "WGCNA_SCORE")
+      set_parents(glue("{orgAbbrev} htseq counts"), 'assay.ID') %>%
+      set_variable_display_names_from_provider_labels() %>%
+      set_variable_metadata('assay.ID', display_name = "Assay ID", hidden=list('variableTree')) %>%
+      set_variable_metadata('wgcna.ID', display_name = "WGCNA ID", hidden=list('variableTree'))
+  })
+
+  assays <- benchmark(paste("wgcna_variable_metadata", name), {
+    assays %>%
+      create_variable_category(
+        category_name = 'wgcna',
+        children = assays %>% get_variable_metadata() %>% pull(variable),
+        display_name = 'Eigengenes',
+        definition = 'Eigengene from RNA-Seq'
+      ) %>%
+      create_variable_collection(
+        'wgcna',
+        member = 'eigengene',
+        member_plural = 'eigengenes',
+        stable_id =  "EUPATH_0005051",
+        is_proportion =  FALSE,
+        is_compositional = FALSE
+      )
   })
 
   assays
