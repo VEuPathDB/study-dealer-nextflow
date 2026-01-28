@@ -47,8 +47,7 @@ read_wgcna_data <- function(filename) {
   # Keep wide format: assay.ID | wgcna.ID | ME_module1 | ME_module2 | ...
   data <- data %>%
     mutate(wgcna.ID = sample.ID) %>%
-    relocate(wgcna.ID, .after = sample.ID) %>%
-    rename(assay.ID = sample.ID)
+    relocate(wgcna.ID, .after = sample.ID)
 
   return(data)
 }
@@ -383,9 +382,9 @@ wgcna_to_entity <- function(tbl, name, orgAbbrev) {
       skip_type_convert = TRUE
       #TO DO, description = ???
     ) %>%
-      set_parents(glue("{orgAbbrev} htseq counts"), 'assay.ID') %>%
+      set_parents('sample', 'sample.ID') %>%
       set_variable_display_names_from_provider_labels() %>%
-      set_variable_metadata('assay.ID', display_name = "Assay ID", hidden=list('variableTree')) %>%
+      set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree')) %>%
       set_variable_metadata('wgcna.ID', display_name = "WGCNA ID", hidden=list('variableTree'))
   })
 
