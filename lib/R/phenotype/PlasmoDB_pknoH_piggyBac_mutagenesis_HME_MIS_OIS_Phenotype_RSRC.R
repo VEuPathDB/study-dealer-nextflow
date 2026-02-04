@@ -23,10 +23,19 @@ wrangle <- function() {
    sync_variable_metadata() %>%
    redetect_column_as_id('ID')
 
+  ## create rank variables and update metadata
   genePhenotype <- genePhenotype %>%
+    modify_data(mutate(
+      Hybrid.model.score.rank = rank(Hybrid.model.score),
+      Occupancy.index.score.rank = rank(Occupancy.index.score)
+    )) %>%
+    sync_variable_metadata() %>%
+
     set_variable_metadata('gene', stable_id = "VEUPATHDB_GENE_ID", display_name = "Gene", provider_label=list("gene"), display_order=1, hidden=list('variableTree')) %>%
-    set_variable_metadata('Hybrid.model.score', display_order=2, display_name = "Hybrid Model Score", definition = "Hybrid Model Score") %>%
-    set_variable_metadata('Occupancy.index.score', display_order=3, display_name = "Occupancy Index Score", definition = "Occupancy Index Score")
+    set_variable_metadata('Hybrid.model.score.rank', display_order=2, display_name = "Hybrid Model Score Rank", hidden=list('variableTree'), definition="Rank of Hybrid Model Score") %>%
+    set_variable_metadata('Hybrid.model.score', display_order=3, display_name = "Hybrid Model Score", definition = "Hybrid Model Score") %>%
+    set_variable_metadata('Occupancy.index.score.rank', display_order=4, display_name = "Occupancy Index Score Rank", hidden=list('variableTree'), definition="Rank of Occupancy Index Score") %>%
+    set_variable_metadata('Occupancy.index.score', display_order=5, display_name = "Occupancy Index Score", definition = "Occupancy Index Score")
   
   study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
