@@ -347,7 +347,6 @@ counts_to_entity <- function(tbl, orgAbbrev) {
       name = glue("{orgAbbrev} htseq counts"),
       display_name = glue("{orgAbbrev} htseq counts"),
       display_name_plural = glue("{orgAbbrev} htseq counts"),
-      stable_id = "GENE_EXPRESSION_RNASEQ_DATA",
       skip_type_convert = TRUE
     ) %>%
       set_parents('sample', 'sample.ID') %>%
@@ -378,7 +377,6 @@ wgcna_to_entity <- function(tbl, name, orgAbbrev) {
       name = glue("{orgAbbrev} eigengene"),
       display_name = glue("{orgAbbrev} Eigengene (wgcna)"),
       display_name_plural = glue("{orgAbbrev} Eigengenes (wgcna)"),
-      stable_id = "WGCNA_DATA",
       skip_type_convert = TRUE
       #TO DO, description = ???
     ) %>%
