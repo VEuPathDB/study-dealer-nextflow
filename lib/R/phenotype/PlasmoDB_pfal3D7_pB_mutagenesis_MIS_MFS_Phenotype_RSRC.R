@@ -24,10 +24,18 @@ wrangle <- function() {
     sync_variable_metadata() %>%
     redetect_column_as_id('ID')
 
-  ## update columns as needed
+  ## create rank variables and update metadata
   genePhenotype <- genePhenotype %>%
-    set_variable_metadata('mutant.fitness.score', display_order=2, display_name = "Mutant Fitness Score", definition="Mutant fitness score") %>%
-    set_variable_metadata('mutagenesis.index.score', display_order=3, display_name = "Mutagenesis Index Score", definition="Mutagenesis index score")
+    modify_data(mutate(
+      mutant.fitness.score.rank = rank(mutant.fitness.score),
+      mutagenesis.index.score.rank = rank(mutagenesis.index.score)
+    )) %>%
+    sync_variable_metadata() %>%
+
+    set_variable_metadata('mutant.fitness.score.rank', display_order=2, display_name = "Mutant Fitness Score Rank", hidden=list('variableTree'), definition="Rank of Mutant Fitness Score") %>%
+    set_variable_metadata('mutant.fitness.score', display_order=3, display_name = "Mutant Fitness Score", definition="Mutant fitness score") %>%
+    set_variable_metadata('mutagenesis.index.score.rank', display_order=4, display_name = "Mutagenesis Index Score Rank", hidden=list('variableTree'), definition="Rank of Mutagenesis Index Score") %>%
+    set_variable_metadata('mutagenesis.index.score', display_order=5, display_name = "Mutagenesis Index Score", definition="Mutagenesis index score")
 
   study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
