@@ -358,8 +358,8 @@ counts_to_entity <- function(tbl, orgAbbrev) {
   # Set display names for count columns
   if ("Sense.Count" %in% colnames(tbl)) {
     assays <- assays %>%
-      set_variable_metadata('Sense.Count', display_name = "Sense Count", stable_id="SEQUENCE_READ_COUNT_SENSE") %>%
-      set_variable_metadata('Antisense.Count', display_name = "Antisense Count", stable_id="SEQUENCE_READ_COUNT_ANTISENSE")
+      set_variable_metadata('Sense.Count', display_name = "Sense Count", stable_id="SEQUENCE_READ_COUNT_SENSE", is_featured = TRUE, display_order = 1) %>%
+      set_variable_metadata('Antisense.Count', display_name = "Antisense Count", stable_id="SEQUENCE_READ_COUNT_ANTISENSE", display_order = 2)
   } else if ("Count" %in% colnames(tbl)) {
     assays <- assays %>%
       set_variable_metadata('Count', display_name = "Count", stable_id="SEQUENCE_READ_COUNT")
