@@ -470,8 +470,21 @@ wrangle <- function(studyName) {
 
   # the entity will have the name 'sample'
   samples <- benchmark("process_sample_metadata", {
-    entity_from_stf(file_discovery$sample_tsv_file) %>%
+    samples_entity <- entity_from_stf(file_discovery$sample_tsv_file) %>%
       set_variable_metadata('sample.ID', display_name = "Sample ID", hidden=list('variableTree'))
+
+    variable_names <- samples_entity %>% get_variable_metadata() %>% pull('variable')
+
+    if ('label' %in% variable_names) {
+      samples_entity <- samples_entity %>% set_variable_metadata('label', is_featured = TRUE)
+      variable_names <- c('label', variable_names[variable_names != 'label'])
+    }
+
+    for (i in seq_along(variable_names)) {
+      samples_entity <- samples_entity %>% set_variable_metadata(variable_names[[i]], display_order = i)
+    }
+
+    samples_entity
   })
 
 
