@@ -40,6 +40,18 @@ wrangle <- function() {
   # Missing columns in individual files will be filled with NA
   combined_data <- bind_rows(all_isolates)
 
+  # Replace PMID integers with full citation strings
+  citations <- read_tsv(file.path(data_dir, "pmid_citations.tsv"), col_types = cols(.default = "c"), show_col_types = FALSE)
+  combined_data <- combined_data %>%
+    left_join(citations, by = "PMID") %>%
+    select(-PMID) %>%
+    rename(Publication = citation)
+
+  # Join country-level latitude/longitude
+  latlon <- read_tsv(file.path(data_dir, "country_latlon.tsv"), col_types = cols(.default = "c"), show_col_types = FALSE)
+  combined_data <- combined_data %>%
+    left_join(latlon, by = "Country")
+
   # Map file names to dataset names
   combined_data <- combined_data %>%
     mutate(Dataset = case_when(
@@ -50,6 +62,7 @@ wrangle <- function() {
       source_file_name == "Bird.txt" ~ "RFLP genotypes of Brazilian isolates from birds for human consumption",
       source_file_name == "Pig_Goat.txt" ~ "RFLP genotypes of Brazilian isolates from pig and goat for human consumption",
       source_file_name == "Tgon_Cat_Brazil.txt" ~ "Molecular markers in cats RFLP phenotype",
+      source_file_name == "TgMonkeyBrRS1.txt" ~ "RFLP genotypes of Brazilian capuchin monkey isolate",
       TRUE ~ source_file_name  # fallback to filename if not matched
     )) %>%
     select(-source_file_name)  # Remove the temporary column
@@ -87,7 +100,8 @@ wrangle <- function() {
     set_variable_metadata('Dataset',
                           display_name = "Dataset",
                           definition = "Dataset source for the RFLP isolate",
-                          display_order = 1) %>%
+                          display_order = 1,
+                          hidden = list('variableTree')) %>%
     set_variable_metadata('Isolate_ID',
                           display_name = "Isolate ID",
                           definition = "Unique identifier for the RFLP isolate",
@@ -99,7 +113,8 @@ wrangle <- function() {
     set_variable_metadata('Host_Species',
                           display_name = "Host Species",
                           definition = "Scientific name of the host species",
-                          display_order = 4) %>%
+                          display_order = 4,
+                          hidden = list('variableTree')) %>%
     set_variable_metadata('Country',
                           display_name = "Country",
                           definition = "Country where the isolate was collected",
@@ -112,13 +127,26 @@ wrangle <- function() {
                           display_name = "City/Region",
                           definition = "City or region where the isolate was collected",
                           display_order = 7) %>%
+    set_variable_metadata('latitude',
+                          display_name = "Latitude",
+                          definition = "Latitude of the country centroid where the isolate was collected",
+                          hidden = list('variableTree')) %>%
+    set_variable_metadata('longitude',
+                          display_name = "Longitude",
+                          definition = "Longitude of the country centroid where the isolate was collected",
+                          hidden = list('variableTree')) %>%
+    infer_geo_variables_for_eda() %>%
     set_variable_metadata('ToxoDB_Genotype',
-                          display_name = "PCR-RFLP genotype #",
-                          definition = "PCR-RFLP genotype #",
+                          display_name = "RFLP genotype #",
+                          definition = "RFLP genotype #",
                           display_order = 8) %>%
     set_variable_metadata('Organc',
                           display_name = "Organ",
-                          display_order = 9) %>%
+                          display_order = 9,
+                          hidden = list('variableTree')) %>%
+    set_variable_metadata('Morbidity....b',
+                          display_name = "Morbidity (%)",
+                          hidden = list('variableTree')) %>%
     create_variable_category(
       "Genetic_Marker",
       display_name = "Genetic Marker",
@@ -126,18 +154,15 @@ wrangle <- function() {
     )
 
 
-  # Set PMID metadata if the column exists
-  if ("PMID" %in% names(rflp_entity@data)) {
+  # Set Publication metadata if the column exists
+  if ("Publication" %in% names(rflp_entity@data)) {
     rflp_entity <- rflp_entity %>%
-      # Convert PMID data to character first
-      modify_data(mutate(PMID = as.character(PMID))) %>%
-      # Then set the metadata (data_type AND data_shape must be consistent)
-      set_variable_metadata('PMID',
-                            display_name = "PubMed ID",
-                            definition = "PubMed identifier for the publication",
+      set_variable_metadata('Publication',
+                            display_name = "Publication",
+                            definition = "Citation for the publication associated with this isolate",
                             data_type = "string",
                             data_shape = "categorical")
-    message("PMID converted to character with data_type=string and data_shape=categorical")
+    message("Publication citation metadata set")
   }
 
   # Validate entity
