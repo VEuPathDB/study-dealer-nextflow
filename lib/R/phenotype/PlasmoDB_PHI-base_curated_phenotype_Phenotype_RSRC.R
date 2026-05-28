@@ -6,5 +6,5 @@ wrangle <- function() {
   shared_env <- new.env()
   source(paste0(my_r_lib, "/phenotype/PHI-base_curated_phenotype_shared.R"), local = shared_env)
 
-  shared_env$wrangle_phi_base("phenotypes_FungiDB.txt")
+  shared_env$wrangle_phi_base("phenotypes_PlasmoDB.txt")
 }
