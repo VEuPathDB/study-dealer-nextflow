@@ -36,8 +36,7 @@ wrangle <- function() {
     set_variable_metadata('note', display_order=8, display_name = "Description", definition = "Description") %>%
     set_variable_metadata('experimentType', display_order=9, display_name = "Experiment Type", definition = "Experiment Type") %>%
     set_variable_metadata('allele', display_order=10, display_name = "Allele", definition = "Allele") %>%
-    set_variable_metadata('AnnotationExtension', display_order=11, display_name = "Phenotype Target", definition = "A ChEBI compound, gene ID, or other qualifier that specifies the context of the observation (e.g. the specific chemical being accumulated, or the gene whose
-  RNA changes).") %>%
+    set_variable_metadata('AnnotationExtension', display_order=11, display_name = "Phenotype Target", definition = "A ChEBI compound, gene ID, or other qualifier that specifies the context of the observation (e.g. the specific chemical being accumulated, or the gene whose RNA changes).") %>%
     modify_data(mutate(pubmedId = as.character(pubmedId)))
 
   study = study(name="TEMP_STUDY_NAME", genePhenotype)
