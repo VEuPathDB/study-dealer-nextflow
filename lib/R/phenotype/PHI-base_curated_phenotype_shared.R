@@ -25,7 +25,23 @@ wrangle_phi_base <- function(filename) {
     set_variable_display_names_from_provider_labels()
 
   genePhenotype <- genePhenotype %>%
-    modify_data(mutate(ID = row_number())) %>%
+    modify_data(
+      mutate(
+        ID = row_number(),
+        across(
+          any_of(c(
+            "Multiple.mutations",
+            "Mating.defect",
+            "Prepenetration.defect",
+            "Disease.manifestation",
+            "Vegetative.spores",
+            "Sexual.spores",
+            "Spore.germination"
+          )),
+          as.character
+        )
+      )
+    ) %>%
     sync_variable_metadata() %>%
     redetect_column_as_id('ID') %>%
     redetect_columns_as_variables('phenotype_id')
