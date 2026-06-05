@@ -138,7 +138,7 @@ wrangle <- function() {
     infer_geo_variables_for_eda() %>%
     set_variable_metadata('ToxoDB_Genotype',
                           display_name = "RFLP genotype #",
-                          definition = "RFLP genotype #",
+                          definition = "RFLP genotype number. See the <a href=\"/a/app/static-content/ToxoDB/pcr-rflp-genotypes.html\">RFLP Genotype Reference</a> for details.",
                           display_order = 8) %>%
     set_variable_metadata('Organc',
                           display_name = "Organ",
