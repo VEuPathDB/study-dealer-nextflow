@@ -96,11 +96,10 @@ wrangle <- function() {
   rflp_entity <- rflp_entity %>%
     set_variable_display_names_from_provider_labels()
 
-  # Create unique ID and set as primary key
-  ## rflp_entity <- rflp_entity %>%
-  ##   modify_data(mutate(ID = row_number())) %>%
-  ##   sync_variable_metadata() %>%
-  ##   redetect_column_as_id('ID')
+  # Create synthetic row-number ID so Isolate_ID can be treated as a regular variable
+  rflp_entity <- rflp_entity %>%
+    create_serial_id_column('ID') %>%
+    redetect_columns_as_variables('Isolate_ID')
 
   # custom sort function for number-like ID column
   sort_numbers_first <- function(vec) {
