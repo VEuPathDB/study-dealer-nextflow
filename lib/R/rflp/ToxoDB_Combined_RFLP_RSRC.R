@@ -1,6 +1,13 @@
 library(tidyverse)
 library(study.wrangler)
 
+if (packageVersion("study.wrangler") < "1.0.45") {
+  stop(sprintf(
+    "study.wrangler >= 1.0.45 is required by ToxoDB_Combined_RFLP_RSRC (found %s). Bump studyWranglerTag in nextflow.config.",
+    packageVersion("study.wrangler")
+  ))
+}
+
 wrangle <- function() {
   rm(list = ls())
 
@@ -95,6 +102,12 @@ wrangle <- function() {
   ##   sync_variable_metadata() %>%
   ##   redetect_column_as_id('ID')
 
+  # custom sort function for number-like ID column
+  sort_numbers_first <- function(vec) {
+    nums <- suppressWarnings(as.numeric(vec))
+    c(vec[!is.na(nums)][order(nums[!is.na(nums)])], sort(vec[is.na(nums)]))
+  }						    
+
   # Set specific variable metadata for key columns
   rflp_entity <- rflp_entity %>%
     set_variable_metadata('Dataset',
@@ -140,6 +153,7 @@ wrangle <- function() {
                           display_name = "RFLP genotype #",
                           definition = "RFLP genotype number. See the <a href=\"/a/app/static-content/ToxoDB/pcr-rflp-genotypes.html\">RFLP Genotype Reference</a> for details.",
                           display_order = 8) %>%
+    set_variable_vocabulary_order('ToxoDB_Genotype', sort_numbers_first) %>%
     set_variable_metadata('Organc',
                           display_name = "Organ",
                           display_order = 9,
