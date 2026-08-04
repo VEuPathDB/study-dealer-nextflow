@@ -107,7 +107,7 @@ datasets that contributed samples, by construction.
 ```bash
 nextflow run main.nf --mode dnaseq \
     --workflowDataDir /path/to/workflow/data \
-    --sampleDetails my_sample_details \
+    --sampleDetailsDir /path/to/sample/details \
     --dryRunLoad true
 ```
 
@@ -189,7 +189,7 @@ nextflow run main.nf --gusHomeDir /path/to/gus
 - `outputDir`: Results output directory (default: `$launchDir/results`)
 - `datasetName`: Filter to specific dataset (default: `""`)
 - `multiDatasetStudies`: JSON file mapping datasets to studies (rnaseq only)
-- `sampleDetails`: Directory under `workflowDataDir` holding sample characteristics (stf) for rnaseq, chipChip and dnaseq (default: `sample_details`)
+- `sampleDetailsDir`: Directory holding sample characteristics (stf) for rnaseq, chipChip and dnaseq (default: `$baseDir/data/sample_details`)
 - `dryRunLoad`: Echo the VDI load command instead of running it (default: `false`)
 - `studyWranglerTag`: Docker image version (default: `1.0.27`)
 
