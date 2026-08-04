@@ -14,7 +14,8 @@ The pipeline follows a mode-based architecture where different data types are pr
 - `main.nf`: Main workflow dispatcher that routes execution based on `params.mode`
   - `mode = "rnaseq"`: Processes RNA sequencing studies via `multiple_rnaseq_studies` workflow
   - `mode = "phenotype"`, `antibodyArray`, `cellularLocalization`, `rflp`: Process via `single_study` subworkflow
-  - Additional modes planned: `dnaseq_chipChip`, `dnaseq_chipSeq`, `dnaseq_SNP_CNV`
+  - `mode = "dnaseq"`: One study per reference organism via `combined_dnaseq_studies` workflow
+  - Additional modes planned: `dnaseq_chipChip`, `dnaseq_chipSeq`
 
 ### Workflow Structure
 - `workflows/`: Contains high-level workflow definitions
@@ -37,6 +38,58 @@ The pipeline uses a sophisticated file pattern matching system defined in `nextf
 - Input data organized by: `{projectName}/{organismAbbrev}/{mode}/{datasetName}/`
 - Supports multiple file types: counts files, metadata, WGCNA eigengenes, phenotype data
 - Uses JSON mapping (`multiDatasetStudy.json`) to group datasets into studies for RNA-seq mode
+
+### Key Processing Steps for dnaseq
+
+`dnaseq` differs from every other mode in that the unit of a study is the
+**reference organism**, not the dataset. Any sample aligned to a reference
+genome must be queryable alongside every other sample aligned to it, so all of
+an organism's dnaseq experiments become one study whose variables are the union
+of theirs.
+
+Two inputs, joined on `project` + `organismAbbrev`:
+
+1. `params.dnaseqStfDir/<project>/<organismAbbrev>/entity-sample.{tsv,yaml}` -
+   sample characteristics, already harmonized across that organism's
+   experiments. `study.yaml` in those directories is ignored; this mode builds
+   the study itself.
+2. `params.filePatterns['dnaseq']` - the per-sample `*_alignment_stats.tsv`
+   emitted by the dnaseq workflow, under
+   `<project>/<organismAbbrev>/dnaseq/<datasetName>/dnaseqNextflow/analysisDir/results/<sample>/`.
+
+There is deliberately **no** `multiDatasetStudy.json` equivalent: the directory
+layout is the study grouping, so there is no hand-maintained mapping that can
+drift out of agreement with the data. Adding an organism means adding a
+directory.
+
+The join key is `sample_id`, which is byte-identical to the `sample` column of
+the alignment stats by construction - that is why harmonization never
+"corrected" a workflow-generated sample name, and why a curated display name
+lives in the separate `sample_display_name` variable instead.
+`bin/combinedDnaseqStudyWrangle.R` fails hard if either side has a sample the
+other lacks, rather than emitting a study with silently empty columns.
+
+Alignment stats become variables on the sample entity (not a child assay
+entity): a study is scoped to one reference organism, so each sample has exactly
+one alignment against it. They are grouped under the `alignment_statistics`
+variable category.
+
+Study name and external database name are the same string,
+`${organismAbbrev}_dnaSeqVariations` (e.g. `pvinvinckeiCY_dnaSeqVariations`).
+One study per organism means a second identity would only be a mapping to
+maintain.
+
+```bash
+nextflow run main.nf --mode dnaseq \
+    --workflowDataDir /path/to/workflow/data \
+    --dnaseqStfDir /path/to/harmonized/stf \
+    --dryRunLoad true
+```
+
+`--dryRunLoad true` echoes the `InsertEdaStudyFromArtifacts` command instead of
+running it, so the whole pipeline can be exercised without touching the
+database. To restrict a run to one organism, point `--dnaseqStfDir` at a
+directory holding only that organism; the join drops the rest (with a warning).
 
 ### Key Processing Steps for RNA-seq
 1. Collect files via glob patterns from `params.filePatterns`
@@ -109,7 +162,9 @@ nextflow run main.nf --gusHomeDir /path/to/gus
 - `mode`: Processing mode (rnaseq, phenotype, etc.) (default: `rnaseq`)
 - `outputDir`: Results output directory (default: `$launchDir/results`)
 - `datasetName`: Filter to specific dataset (default: `""`)
-- `multiDatasetStudies`: JSON file mapping datasets to studies
+- `multiDatasetStudies`: JSON file mapping datasets to studies (rnaseq only)
+- `dnaseqStfDir`: Root of the harmonized per-organism stf files, `<project>/<organismAbbrev>/entity-sample.*` (dnaseq mode)
+- `dryRunLoad`: Echo the VDI load command instead of running it (default: `false`)
 - `studyWranglerTag`: Docker image version (default: `1.0.27`)
 
 ### Docker Containers Used

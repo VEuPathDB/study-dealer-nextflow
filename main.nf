@@ -7,6 +7,8 @@ include { multiple_rnaseq_studies } from './workflows/multiple_rnaseq_studies'
 
 include { multiple_chipchip_studies } from './workflows/multiple_chipchip_studies'
 
+include { combined_dnaseq_studies } from './workflows/combined_dnaseq_studies'
+
 include { single_study } from './subworkflows/single_study'
 
 
@@ -31,10 +33,12 @@ workflow {
     }
 
 
-    if(params.mode == "dnaseq_chipSeq") {
-        // TODO
+    if(params.mode == "dnaseq") {
+        combined_dnaseq_studies()
     }
-    if(params.mode == "dnaseq_SNP_CNV") {
+
+
+    if(params.mode == "dnaseq_chipSeq") {
         // TODO
     }
 
