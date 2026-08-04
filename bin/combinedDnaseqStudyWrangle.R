@@ -82,10 +82,19 @@ stats <- stats_files %>%
   list_rbind()
 
 ## --------------------------------------------------------------- sanity checks
-## sample_id in the stf is byte-identical to the `sample` column of these files
-## by construction -- that is the whole reason sample_id was not "improved"
-## during harmonization. If that ever stops being true we want a hard failure
-## here, not a study full of empty alignment columns.
+##
+## The alignment stats are the authority on which samples exist. They are what
+## the workflow actually aligned, and sample_id in the stf is byte-identical to
+## their `sample` column by construction -- that is the whole reason sample_id
+## was not "improved" during harmonization.
+##
+## So the two directions are NOT symmetric:
+##
+##   sample aligned but not in the stf  -> hard failure. The workflow produced
+##       data we have no metadata for, which is a real gap in the metadata.
+##   sample in the stf but not aligned  -> report and drop it. A test database
+##       legitimately holds a subset of the aligned data, and we only want to
+##       process the metadata that corresponds to it.
 
 dupes <- stats$sample[duplicated(stats$sample)]
 if (length(dupes) > 0)
@@ -93,19 +102,60 @@ if (length(dupes) > 0)
 
 stf_ids <- sample_entity %>% get_data() %>% pull(sample_id)
 
-missing_stats <- setdiff(stf_ids, stats$sample)
 missing_meta <- setdiff(stats$sample, stf_ids)
-
 if (length(missing_meta) > 0)
   stop(length(missing_meta), " samples have alignment stats but no row in the stf: ",
        paste(head(missing_meta, 10), collapse = ", "))
 
-if (length(missing_stats) > 0)
-  stop(length(missing_stats), " samples are in the stf but have no alignment stats: ",
-       paste(head(missing_stats, 10), collapse = ", "))
+not_aligned <- setdiff(stf_ids, stats$sample)
+if (length(not_aligned) > 0) {
+  message("NOTE: dropping ", length(not_aligned), " of ", length(stf_ids),
+          " stf samples with no alignment stats (subset of aligned data): ",
+          paste(head(not_aligned, 10), collapse = ", "),
+          if (length(not_aligned) > 10) ", ..." else "")
 
-message("joined ", nrow(stats), " samples of alignment stats onto ", length(stf_ids),
-        " stf samples for ", organism_abbrev)
+  sample_entity <- sample_entity %>%
+    modify_data(filter(!sample_id %in% not_aligned))
+
+  ## Dropping samples can empty a variable out completely -- one recorded by
+  ## only the experiments that are absent from this subset. An all-empty
+  ## variable is noise in the UI, and a category left with no children is not
+  ## valid, so both go.
+  empty_vars <- sample_entity %>%
+    get_data() %>%
+    select(-sample_id) %>%
+    select(where(~ all(is.na(.)))) %>%
+    names()
+
+  if (length(empty_vars) > 0) {
+    message("NOTE: dropping ", length(empty_vars),
+            " variables left with no values by the sample subset: ",
+            paste(empty_vars, collapse = ", "))
+
+    sample_entity <- sample_entity %>%
+      modify_data(select(-all_of(empty_vars))) %>%
+      sync_variable_metadata()
+  }
+
+  ## Looped because pruning a category can orphan its parent.
+  repeat {
+    meta <- sample_entity %>% get_variable_and_category_metadata()
+
+    childless <- meta %>%
+      filter(data_type == "category", !variable %in% meta$parent_variable) %>%
+      pull(variable)
+
+    if (length(childless) == 0) break
+
+    message("NOTE: dropping empty variable categories: ", paste(childless, collapse = ", "))
+    for (category in childless) {
+      sample_entity <- sample_entity %>% delete_variable_category(category)
+    }
+  }
+}
+
+message("joined ", nrow(stats), " samples of alignment stats onto ",
+        length(stf_ids) - length(not_aligned), " stf samples for ", organism_abbrev)
 
 ## ----------------------------------------------------------------- merge them
 

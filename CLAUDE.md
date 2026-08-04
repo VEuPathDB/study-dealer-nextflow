@@ -66,8 +66,22 @@ The join key is `sample_id`, which is byte-identical to the `sample` column of
 the alignment stats by construction - that is why harmonization never
 "corrected" a workflow-generated sample name, and why a curated display name
 lives in the separate `sample_display_name` variable instead.
-`bin/combinedDnaseqStudyWrangle.R` fails hard if either side has a sample the
-other lacks, rather than emitting a study with silently empty columns.
+
+**The alignment stats are the authority on which samples exist**, so the two
+kinds of mismatch are handled differently:
+
+| Mismatch | Behaviour |
+|---|---|
+| Sample aligned, no stf row | **Fatal.** The workflow produced data we have no metadata for. |
+| Organism aligned, no stf at all | **Fatal**, same reason. |
+| Sample in the stf, not aligned | Reported, then dropped. |
+| Organism in the stf, none of it aligned | Reported, then skipped. |
+
+The asymmetry exists so a test database holding a subset of the aligned data
+works without ceremony: only the metadata corresponding to the aligned samples
+gets processed. Dropping samples can leave a variable with no values at all (one
+recorded only by experiments absent from the subset) and a category with no
+remaining children, so both are pruned before validation.
 
 Alignment stats become variables on the sample entity (not a child assay
 entity): a study is scoped to one reference organism, so each sample has exactly
@@ -88,8 +102,9 @@ nextflow run main.nf --mode dnaseq \
 
 `--dryRunLoad true` echoes the `InsertEdaStudyFromArtifacts` command instead of
 running it, so the whole pipeline can be exercised without touching the
-database. To restrict a run to one organism, point `--dnaseqStfDir` at a
-directory holding only that organism; the join drops the rest (with a warning).
+database. To restrict a run to one organism, point `--workflowDataDir` at a
+tree holding only that organism's alignment stats - extra stf directories are
+skipped with a warning, whereas a trimmed `--dnaseqStfDir` is fatal by design.
 
 ### Key Processing Steps for RNA-seq
 1. Collect files via glob patterns from `params.filePatterns`

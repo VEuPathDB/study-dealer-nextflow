@@ -44,20 +44,29 @@ workflow combined_dnaseq_studies {
         .map { file -> keyByProjectAndOrganism(file, params.workflowDataDir) }
         .groupTuple()
 
-    // An organism is only wrangled when we have both halves. An stf with no
-    // alignment stats has nothing to load, and alignment stats with no stf would
-    // produce a study with no sample characteristics. Either way it is a missing
-    // input, not something to quietly proceed with, so the half-matches are
-    // warned about instead of being dropped invisibly by an inner join.
+    // The alignment stats are the authority on what exists: they are what the
+    // workflow actually aligned. The two half-matches are therefore not
+    // symmetric.
+    //
+    //   aligned but no stf -> fatal. We would be dropping data the workflow
+    //       produced because its metadata is missing, which is a gap to fix, not
+    //       to skip past.
+    //   stf but nothing aligned -> report and skip. A test database legitimately
+    //       holds a subset of the aligned data, and only the metadata that
+    //       corresponds to it should be processed.
     paired = stfFiles.join(alignmentStats, remainder: true)
         .branch { key, stf, stats ->
             complete: stf != null && stats != null
-            incomplete: true
+            orphanedStats: stf == null
+            unaligned: true
         }
 
-    paired.incomplete.subscribe { key, stf, stats ->
-        def what = stf == null ? "alignment stats but no stf" : "stf but no alignment stats"
-        log.warn "Skipping ${key[0]}/${key[1]} - found ${what}"
+    paired.orphanedStats.subscribe { key, stf, stats ->
+        throw new IllegalStateException("${key[0]}/${key[1]} has ${stats.size()} aligned samples but no stf in ${params.dnaseqStfDir} - the alignment stats are the authority on which samples exist, so this is missing metadata, not an optional input")
+    }
+
+    paired.unaligned.subscribe { key, stf, stats ->
+        log.warn "Skipping ${key[0]}/${key[1]} - stf present but none of its samples were aligned"
     }
 
     studies = paired.complete
