@@ -88,10 +88,21 @@ entity): a study is scoped to one reference organism, so each sample has exactly
 one alignment against it. They are grouped under the `alignment_statistics`
 variable category.
 
-Study name and external database name are the same string,
-`${organismAbbrev}_dnaSeqVariations` (e.g. `pvinvinckeiCY_dnaSeqVariations`).
-One study per organism means a second identity would only be a mapping to
-maintain.
+The study is named `${organismAbbrev}_dnaSeqVariations` (e.g.
+`pvinvinckeiCY_dnaSeqVariations`), matching the organism-level extDbRlsSpec the
+dnaseq workflow itself uses for variation data.
+
+The **load spec is not that name**. One study per organism is still derived from
+every dnaseq dataset aligned to that organism, and
+`EDA.StudyExternalDatabaseRelease` is many-to-one with the study, so
+`loadVdiArtifacts` receives every contributing dataset's external database name.
+For dnaseq the dataset name *is* the external database name (the
+`dnaSeqExperimentFrom*` classes in `EbrcModelCommon` register `%DATASET_NAME%`),
+and it is recoverable from the `<datasetName>` element of the alignment stats
+path. The stf files do not carry it - dataset membership is recorded there as the
+`DS_` digest in `dataset_id` - so the paths are the source for the load spec.
+Deriving it from the paths also means the datasets on the spec are exactly the
+datasets that contributed samples, by construction.
 
 ```bash
 nextflow run main.nf --mode dnaseq \
