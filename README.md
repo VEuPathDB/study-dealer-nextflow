@@ -97,7 +97,7 @@ All use the same pattern: custom R scripts in `lib/R/{mode}/{DatasetName}.R`
 | `workflowDataDir` | Base directory for input data | `$baseDir/data` |
 | `outputDir` | Results output directory | `$launchDir/results` |
 | `datasetName` | Filter to specific dataset | `""` |
-| `multiDatasetStudies` | JSON file for study mapping | `$baseDir/data/rnaseq_sample_reannotation/multiDatasetStudy.json` |
+| `multiDatasetStudies` | JSON file for study mapping | `${params.sampleDetailsDir}/multiDatasetStudy.json` |
 | `studyWranglerTag` | Docker image version | `1.0.27` |
 
 ## Input Data Organization
@@ -120,7 +120,7 @@ data/PlasmoDB/pfal3D7/rnaseq/pfal3D7_Lee_Gambian_ebi_rnaSeq_RSRC/analysis_output
 
 ## Multi-Dataset Studies (RNA-seq)
 
-For RNA-seq studies spanning multiple organisms, define study groupings in `data/rnaseq_sample_reannotation/multiDatasetStudy.json`:
+For RNA-seq studies spanning multiple organisms, define study groupings in `data/sample_details/multiDatasetStudy.json`:
 
 ```json
 [

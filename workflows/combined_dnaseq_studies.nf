@@ -10,8 +10,8 @@ include { combined_dnaseq_study } from '../subworkflows/single_study'
 // Unlike rnaseq, there is no multiDatasetStudy.json: the variables of every
 // dnaseq experiment aligned to a given reference organism have already been
 // harmonized into a single stf, and the directory layout
-// <dnaseqStfDir>/<project>/<organismAbbrev>/ IS the study grouping. Nothing to
-// keep in sync by hand, and nothing that can silently disagree with the data.
+// <sampleDetailsDir>/<project>/<organismAbbrev>/ IS the study grouping. Nothing
+// to keep in sync by hand, and nothing that can silently disagree with the data.
 //
 // This workflow's only job is to pair each organism's stf with that same
 // organism's per-sample alignment stats and hand both to the wrangler.
@@ -55,9 +55,9 @@ workflow combined_dnaseq_studies {
 
     main:
 
-    // <dnaseqStfDir>/<project>/<organismAbbrev>/entity-sample.{tsv,yaml}
+    // <sampleDetailsDir>/<project>/<organismAbbrev>/entity-sample.{tsv,yaml}
     stfFiles = Channel.fromPath(params.filePatterns['dnaseqStf'])
-        .map { file -> keyByProjectAndOrganism(file, params.dnaseqStfDir) }
+        .map { file -> keyByProjectAndOrganism(file, params.sampleDetailsDir) }
         .groupTuple()
 
     // <workflowDataDir>/<project>/<organismAbbrev>/dnaseq/<datasetName>/dnaseqNextflow/analysisDir/results/<sample>/<sample>_alignment_stats.tsv
@@ -88,7 +88,7 @@ workflow combined_dnaseq_studies {
 
     paired.orphanedStats.subscribe { row ->
         def key = row[0]
-        throw new IllegalStateException("${key[0]}/${key[1]} has ${row[2].size()} aligned samples but no stf in ${params.dnaseqStfDir} - the alignment stats are the authority on which samples exist, so this is missing metadata, not an optional input")
+        throw new IllegalStateException("${key[0]}/${key[1]} has ${row[2].size()} aligned samples but no stf in ${params.sampleDetailsDir} - the alignment stats are the authority on which samples exist, so this is missing metadata, not an optional input")
     }
 
     paired.unaligned.subscribe { row ->

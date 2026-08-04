@@ -49,7 +49,7 @@ of theirs.
 
 Two inputs, joined on `project` + `organismAbbrev`:
 
-1. `params.dnaseqStfDir/<project>/<organismAbbrev>/entity-sample.{tsv,yaml}` -
+1. `params.sampleDetailsDir/<project>/<organismAbbrev>/entity-sample.{tsv,yaml}` -
    sample characteristics, already harmonized across that organism's
    experiments. `study.yaml` in those directories is ignored; this mode builds
    the study itself.
@@ -107,7 +107,7 @@ datasets that contributed samples, by construction.
 ```bash
 nextflow run main.nf --mode dnaseq \
     --workflowDataDir /path/to/workflow/data \
-    --dnaseqStfDir /path/to/harmonized/stf \
+    --sampleDetails my_sample_details \
     --dryRunLoad true
 ```
 
@@ -115,7 +115,7 @@ nextflow run main.nf --mode dnaseq \
 running it, so the whole pipeline can be exercised without touching the
 database. To restrict a run to one organism, point `--workflowDataDir` at a
 tree holding only that organism's alignment stats - extra stf directories are
-skipped with a warning, whereas a trimmed `--dnaseqStfDir` is fatal by design.
+skipped with a warning, whereas a trimmed sample details tree is fatal by design.
 
 ### Key Processing Steps for RNA-seq
 1. Collect files via glob patterns from `params.filePatterns`
@@ -189,7 +189,7 @@ nextflow run main.nf --gusHomeDir /path/to/gus
 - `outputDir`: Results output directory (default: `$launchDir/results`)
 - `datasetName`: Filter to specific dataset (default: `""`)
 - `multiDatasetStudies`: JSON file mapping datasets to studies (rnaseq only)
-- `dnaseqStfDir`: Root of the harmonized per-organism stf files, `<project>/<organismAbbrev>/entity-sample.*` (dnaseq mode)
+- `sampleDetails`: Directory under `workflowDataDir` holding sample characteristics (stf) for rnaseq, chipChip and dnaseq (default: `sample_details`)
 - `dryRunLoad`: Echo the VDI load command instead of running it (default: `false`)
 - `studyWranglerTag`: Docker image version (default: `1.0.27`)
 
@@ -224,7 +224,7 @@ data/
 │   │   └── rnaseq/
 │   └── pberANKA/
 │       └── phenotype/
-└── rnaseq_sample_reannotation/
+└── sample_details/
     └── multiDatasetStudy.json
 ```
 
