@@ -56,7 +56,7 @@ workflow combined_dnaseq_studies {
     main:
 
     // <dnaseqStfDir>/<project>/<organismAbbrev>/entity-sample.{tsv,yaml}
-    stfFiles = Channel.fromPath(params.dnaseqStfPattern)
+    stfFiles = Channel.fromPath(params.filePatterns['dnaseqStf'])
         .map { file -> keyByProjectAndOrganism(file, params.dnaseqStfDir) }
         .groupTuple()
 
@@ -75,23 +75,30 @@ workflow combined_dnaseq_studies {
     //   stf but nothing aligned -> report and skip. A test database legitimately
     //       holds a subset of the aligned data, and only the metadata that
     //       corresponds to it should be processed.
+    // Destructured as a single row rather than as named arguments because
+    // join(remainder: true) does not pad: an unmatched left entry arrives as
+    // [key, stfFiles, null] with no slot for the datasetNames the right hand
+    // side would have carried. A four argument closure fails on those rows.
     paired = stfFiles.join(alignmentStats, remainder: true)
-        .branch { key, stf, stats, datasetNames ->
-            complete: stf != null && stats != null
-            orphanedStats: stf == null
+        .branch { row ->
+            complete: row[1] != null && row[2] != null
+            orphanedStats: row[1] == null
             unaligned: true
         }
 
-    paired.orphanedStats.subscribe { key, stf, stats, datasetNames ->
-        throw new IllegalStateException("${key[0]}/${key[1]} has ${stats.size()} aligned samples but no stf in ${params.dnaseqStfDir} - the alignment stats are the authority on which samples exist, so this is missing metadata, not an optional input")
+    paired.orphanedStats.subscribe { row ->
+        def key = row[0]
+        throw new IllegalStateException("${key[0]}/${key[1]} has ${row[2].size()} aligned samples but no stf in ${params.dnaseqStfDir} - the alignment stats are the authority on which samples exist, so this is missing metadata, not an optional input")
     }
 
-    paired.unaligned.subscribe { key, stf, stats, datasetNames ->
+    paired.unaligned.subscribe { row ->
+        def key = row[0]
         log.warn "Skipping ${key[0]}/${key[1]} - stf present but none of its samples were aligned"
     }
 
     studies = paired.complete
-        .map { key, stf, stats, datasetNames ->
+        .map { row ->
+            def (key, stf, stats, datasetNames) = row
             def (projectName, organismAbbrev) = key
 
             // One study per organism, but it is derived from every dnaseq dataset
