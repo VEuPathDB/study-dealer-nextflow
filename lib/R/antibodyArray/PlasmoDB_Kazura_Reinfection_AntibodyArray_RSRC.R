@@ -82,6 +82,20 @@ wrangle <- function() {
     )   %>%
     sync_variable_metadata()
 
+
+  # Sort "week 3" < "week 10" < "week 11" < "week 11+" (default is lexical).
+  # Values that don't start with "week N" go at the end in lexical order, so
+  # unexpected levels fall back quietly.
+  sortWeeks <- function(weeks) {
+    week_number <- suppressWarnings(as.integer(sub("^week (\\d+).*$", "\\1", weeks)))
+    weeks[order(week_number, weeks)]
+  }
+  
+  sample_entity <- sample_entity %>%
+    set_variable_vocabulary_order("end_of_observation_period", order=sortWeeks) %>%
+    set_variable_vocabulary_order("time_to_first_malaria_dx", order=sortWeeks) %>%
+    set_variable_vocabulary_order("time_to_reinfection", order=sortWeeks)
+
   # Inspect the sample entity
   message("\nSample entity summary:")
   inspect(sample_entity)
