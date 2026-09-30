@@ -60,6 +60,17 @@ wrangle <- function() {
   sample_entity <- sample_entity %>%
     modify_data(mutate(across(any_of(capitalise_first_cols), ~ str_replace(.x, "^.", toupper))))
 
+  # Sort "5 days" < "10 days" (default is lexical). Values that don't start
+  # with a number go at the end in lexical order, so unexpected levels fall
+  # back quietly.
+  sortDays <- function(days) {
+    day_number <- suppressWarnings(as.numeric(sub("^(\\d+(\\.\\d+)?).*$", "\\1", days)))
+    days[order(day_number, days)]
+  }
+
+  sample_entity <- sample_entity %>%
+    set_variable_vocabulary_order("fever_duration", order = sortDays)
+
   # Apply display names and definitions from ontology mapping file
   sample_entity <- applyOntologyMapping(sample_entity, "header_ontology_mapping_deduplicated.txt")
 
