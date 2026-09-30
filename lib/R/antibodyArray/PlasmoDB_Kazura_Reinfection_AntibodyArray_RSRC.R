@@ -56,8 +56,10 @@ wrangle <- function() {
                           display_name = "Collection Date") %>%
     set_variable_metadata('microscopy_result',
                           display_name = "Asexual Parasites Present (Microscopy)") %>%
+    # Hidden: values are uninterpretable encoded integers (possibly corrupted upstream).
     set_variable_metadata('blood_smear_summary',
-                          display_name = "Blood Smear Summary") %>%
+                          display_name = "Blood Smear Summary",
+                          hidden = list('everywhere')) %>%
     set_variable_metadata('parasite_density_by_microscope_microliter',
                           display_name = "Parasite Density by Microscope (microliter)") %>%
     create_variable_category(
@@ -73,7 +75,7 @@ wrangle <- function() {
   create_variable_category(
       "laboratory.findings",
       display_name = "Laboratory Findings",
-      children = c("microscopy_result", "blood_smear_summary", "parasite_density_by_microscope_microliter")
+      children = c("microscopy_result", "parasite_density_by_microscope_microliter")
     )   %>%
     create_variable_category(
       "sample.collection",
