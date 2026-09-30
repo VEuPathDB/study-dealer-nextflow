@@ -69,6 +69,17 @@ wrangle <- function() {
     )   %>%
     sync_variable_metadata()
 
+  # Sort "Subject 2" < "Subject 10" < "Subject 100" (default is lexical). The IDs
+  # stay categorical. Values that don't end in a number go at the end in lexical
+  # order, so unexpected levels fall back quietly.
+  sortSubjects <- function(subjects) {
+    subject_number <- suppressWarnings(as.integer(sub("^.*?(\\d+)$", "\\1", subjects)))
+    subjects[order(subject_number, subjects)]
+  }
+
+  sample_entity <- sample_entity %>%
+    set_variable_vocabulary_order("Subject.ID", order = sortSubjects)
+
   # Inspect the sample entity
   message("\nSample entity summary:")
   inspect(sample_entity)
