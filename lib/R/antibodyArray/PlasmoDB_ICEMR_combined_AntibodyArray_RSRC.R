@@ -45,6 +45,21 @@ wrangle <- function() {
       }
     })
 
+  # Standardise capitalisation of first character (e.g. "no"/"No" -> "No")
+  capitalise_first_cols <- c(
+    # yes/no
+    "cerebral", "coma", "fever", "hospitalized", "immune_responses",
+    "parasite_genetics", "severe_anemia",
+    # positive/negative/not done
+    "falciparum", "knowlesi", "malariae", "ovale", "vivax",
+    "microscopy_result", "gametocytes", "rdt_result",
+    # other
+    "pregnancy_status", "sample_origin"
+  )
+
+  sample_entity <- sample_entity %>%
+    modify_data(mutate(across(any_of(capitalise_first_cols), ~ str_replace(.x, "^.", toupper))))
+
   # Apply display names and definitions from ontology mapping file
   sample_entity <- applyOntologyMapping(sample_entity, "header_ontology_mapping_deduplicated.txt")
 
