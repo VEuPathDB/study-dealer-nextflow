@@ -71,6 +71,14 @@ wrangle <- function() {
   sample_entity <- sample_entity %>%
     set_variable_vocabulary_order("fever_duration", order = sortDays)
 
+  # follow_up_day has a single "not applicable" string among integer values, so
+  # it was detected as categorical. Replace it with NA, make the column integer
+  # and redetect it (study-wrangler >= 1.0.52 re-infers data_shape too).
+  # as.integer() warns if any other non-numeric value turns up.
+  sample_entity <- sample_entity %>%
+    modify_data(mutate(follow_up_day = as.integer(na_if(follow_up_day, "not applicable")))) %>%
+    redetect_columns_as_variables("follow_up_day")
+
   # Apply display names and definitions from ontology mapping file
   sample_entity <- applyOntologyMapping(sample_entity, "header_ontology_mapping_deduplicated.txt")
 
