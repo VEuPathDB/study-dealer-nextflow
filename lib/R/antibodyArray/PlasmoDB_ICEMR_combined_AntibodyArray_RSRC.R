@@ -96,7 +96,8 @@ wrangle <- function() {
     set_variable_metadata('gametocyte_density_by_microscope', unit = 'microliter') %>%
     set_variable_metadata('p_falciparum_parasite_density_by_pcr', unit = 'microliter') %>%
     set_variable_metadata('p_falciparum_parasite_density_by_rt_pcr', unit = 'microliter') %>%
-    set_variable_metadata('hemoglobin_level', unit = 'g/dL')
+    set_variable_metadata('hemoglobin_level', unit = 'g/dL') %>%
+    set_variable_metadata('follow_up_day', unit = 'day')
 
                                         # Inspect the sample entity
   message("\nSample entity summary:")
