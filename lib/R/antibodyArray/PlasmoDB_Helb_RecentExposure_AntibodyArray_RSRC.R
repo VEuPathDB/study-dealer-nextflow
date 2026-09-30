@@ -30,6 +30,10 @@ wrangle <- function() {
     redetect_columns_as_variables("age.at.collection") %>%
     set_variable_metadata('age.at.collection', unit = "year")
 
+  sample_entity <- sample_entity %>%
+    modify_data(mutate(subject = as.character(subject))) %>%
+    sync_variable_metadata()
+
 
 
   sample_entity <- sample_entity %>%
@@ -71,11 +75,11 @@ wrangle <- function() {
     set_variable_metadata('par365', display_name = "P. falciparum detected in 365 days before sample collection",
                           definition = "Were any plasmodium parasites detected at least 1 time in the last 365 days since sample collection?") %>%
     set_variable_metadata('parasite.organism', display_name = "Parasite organism") %>%
-    # Hidden pending confirmation from the study author that participant IDs
-    # should not be exposed.
+    # Participant IDs may be exposed (confirmed by the study author) but must
+    # be categorical, whatever their format.
     set_variable_metadata('subject', display_name = "Participant ID",
                           definition = "Unique participant ID.",
-                          hidden = list('everywhere')) %>%
+                          data_type = "string", data_shape = "categorical") %>%
     set_variable_metadata('hhid', display_name = "Household ID",
                           definition = "Unique household ID, only recorded for the PRISM study participants.") %>%
     set_variable_metadata('nightlyMosq', display_name = "Nightly female Anophelese count",
