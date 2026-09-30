@@ -33,7 +33,8 @@ wrangle <- function() {
     set_variable_metadata('health_status',
                           display_name = "Health Status") %>%
     set_variable_metadata('time_to_onset.days',
-                          display_name = "Time to Onset") %>%
+                          display_name = "Time to Onset",
+                          unit = 'day') %>%
     set_variable_metadata('Collection.date',
                           display_name = "Collection Date") %>%
     set_variable_metadata('specimen',
