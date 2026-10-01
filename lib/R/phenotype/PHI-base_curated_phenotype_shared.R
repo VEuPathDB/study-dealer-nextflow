@@ -10,6 +10,15 @@ set_var_meta_if_present <- function(entity, col, ...) {
   }
 }
 
+# Likewise for vocabulary ordering
+set_vocab_order_if_present <- function(entity, col, order) {
+  if (col %in% names(entity@data)) {
+    set_variable_vocabulary_order(entity, col, order = order)
+  } else {
+    entity
+  }
+}
+
 wrangle_phi_base <- function(filename) {
   genePhenotype = entity_from_file(filename)
 
@@ -36,9 +45,42 @@ wrangle_phi_base <- function(filename) {
             "Disease.manifestation",
             "Vegetative.spores",
             "Sexual.spores",
-            "Spore.germination"
+            "Spore.germination",
+            "PMID"
           )),
           as.character
+        ),
+        # Capitalise the first character (e.g. "yes"/"Yes" -> "Yes")
+        across(
+          any_of(c(
+            "Essential.gene",
+            "Mating.defect",
+            "Prepenetration.defect",
+            "Penetration.defect",
+            "Postpenetration.defect"
+          )),
+          ~ str_replace(.x, "^.", toupper)
+        ),
+        # Lowercase, except sentences (starting with a capital letter and ending with a period)
+        across(
+          any_of(c(
+            "Disease.manifestation",
+            "Vegetative.spores",
+            "Sexual.spores",
+            "Invitro.growth",
+            "Spore.germination"
+          )),
+          ~ if_else(str_detect(.x, "^[A-Z].*\\.$"), .x, str_to_lower(.x))
+        ),
+        # Second pass: "reduced on cm medium" -> "reduced on CM medium"
+        across(
+          any_of("Invitro.growth"),
+          ~ str_replace_all(.x, "\\bcm medium\\b", "CM medium")
+        ),
+        # Remove unnecessary double quotes around a whole value
+        across(
+          any_of("Comments"),
+          ~ str_replace(.x, '^"([^"]*)"$', "\\1")
         )
       )
     ) %>%
@@ -70,7 +112,7 @@ wrangle_phi_base <- function(filename) {
     set_var_meta_if_present('Spore.germination', display_order = 21, display_name = "Spore Germination", definition = "Spore.germination") %>%
     set_var_meta_if_present('Gene.inducer', display_order = 22, display_name = "Gene Inducer", definition = "Gene.inducer") %>%
     set_var_meta_if_present('Experimental.technique', display_order = 23, display_name = "Experimental Technique", definition = "Experimental.technique") %>%
-    set_var_meta_if_present('PMID', display_order = 24, display_name = "PMID", definition = "PMID") %>%
+    set_var_meta_if_present('PMID', display_order = 24, display_name = "PMID", definition = "PMID", data_type = "string", data_shape = "categorical") %>%
     set_var_meta_if_present('Comments', display_order = 25, display_name = "Comments", definition = "Comments")
 
   # Sort "PHI:100" < "PHI:1015" < "PHI:10000" on the integer part (default is
@@ -81,10 +123,22 @@ wrangle_phi_base <- function(filename) {
     entries[order(entry_number, entries)]
   }
 
-  if ("PHI.base.entry" %in% names(genePhenotype@data)) {
-    genePhenotype <- genePhenotype %>%
-      set_variable_vocabulary_order("PHI.base.entry", order = sortPhiEntries)
+  # PMIDs are categorical strings but sort numerically. The odd non-numeric
+  # value (e.g. an ISBN) goes at the end in lexical order.
+  sortPmids <- function(pmids) {
+    pmids[order(suppressWarnings(as.integer(pmids)), pmids)]
   }
+
+  # Ignore a leading delta (gene deletion notation, e.g. "\u2206FonPUF6") when
+  # sorting comments, so they don't float to the top.
+  sortIgnoringLeadingDelta <- function(values) {
+    values[order(str_remove(values, "^[\u2206\u0394]"))]
+  }
+
+  genePhenotype <- genePhenotype %>%
+    set_vocab_order_if_present("PHI.base.entry", sortPhiEntries) %>%
+    set_vocab_order_if_present("PMID", sortPmids) %>%
+    set_vocab_order_if_present("Comments", sortIgnoringLeadingDelta)
 
   study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
