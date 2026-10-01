@@ -19,7 +19,17 @@ wrangle <- function() {
   
   #  deal with the primary Key (gene variable). boilerplate
   genePhenotype <- genePhenotype %>%
-    modify_data(mutate(ID = row_number(), pubmedId = as.character(pubmedId))) %>%
+    # The rogue organism value is a stray fragment of free text (probably a
+    # malformed input row), so blank it; the record is kept without an organism.
+    modify_data(mutate(
+      ID = row_number(),
+      pubmedId = as.character(pubmedId),
+      organism = if_else(
+        str_trim(organism) == "% conidium germination in comparison to WT is",
+        NA_character_,
+        organism
+      )
+    )) %>%
     sync_variable_metadata() %>%
     redetect_column_as_id('ID')
   
