@@ -19,7 +19,7 @@ wrangle <- function() {
   
   #  deal with the primary Key (gene variable). boilerplate
   genePhenotype <- genePhenotype %>%
-    modify_data(mutate(ID = row_number())) %>%
+    modify_data(mutate(ID = row_number(), pubmedId = as.character(pubmedId))) %>%
     sync_variable_metadata() %>%
     redetect_column_as_id('ID')
   
@@ -36,8 +36,16 @@ wrangle <- function() {
     set_variable_metadata('note', display_order=8, display_name = "Description", definition = "Description") %>%
     set_variable_metadata('experimentType', display_order=9, display_name = "Experiment Type", definition = "Experiment Type") %>%
     set_variable_metadata('allele', display_order=10, display_name = "Allele", definition = "Allele") %>%
-    set_variable_metadata('AnnotationExtension', display_order=11, display_name = "Phenotype Target", definition = "A ChEBI compound, gene ID, or other qualifier that specifies the context of the observation (e.g. the specific chemical being accumulated, or the gene whose RNA changes).") %>%
-    modify_data(mutate(pubmedId = as.character(pubmedId)))
+    set_variable_metadata('AnnotationExtension', display_order=11, display_name = "Phenotype Target", definition = "A ChEBI compound, gene ID, or other qualifier that specifies the context of the observation (e.g. the specific chemical being accumulated, or the gene whose RNA changes).")
+
+  # PubMed IDs are categorical strings but sort numerically. Any non-integer
+  # value goes at the end in lexical order, so unexpected levels fall back quietly.
+  sortPmids <- function(pmids) {
+    pmids[order(suppressWarnings(as.integer(pmids)), pmids)]
+  }
+
+  genePhenotype <- genePhenotype %>%
+    set_variable_vocabulary_order("pubmedId", order = sortPmids)
 
   study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
