@@ -73,6 +73,19 @@ wrangle_phi_base <- function(filename) {
     set_var_meta_if_present('PMID', display_order = 24, display_name = "PMID", definition = "PMID") %>%
     set_var_meta_if_present('Comments', display_order = 25, display_name = "Comments", definition = "Comments")
 
+  # Sort "PHI:100" < "PHI:1015" < "PHI:10000" on the integer part (default is
+  # lexical). Values that don't match go at the end in lexical order, so
+  # unexpected levels fall back quietly.
+  sortPhiEntries <- function(entries) {
+    entry_number <- suppressWarnings(as.integer(sub("^PHI:", "", entries)))
+    entries[order(entry_number, entries)]
+  }
+
+  if ("PHI.base.entry" %in% names(genePhenotype@data)) {
+    genePhenotype <- genePhenotype %>%
+      set_variable_vocabulary_order("PHI.base.entry", order = sortPhiEntries)
+  }
+
   study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
