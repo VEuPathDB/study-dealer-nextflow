@@ -15,10 +15,14 @@ wrangle <- function() {
 
   #  deal with the primary Key (gene variable). boilerplate
   genePhenotype <- genePhenotype %>%
-    # Normalise "Not formed"/"Not Formed" to "Not formed": lowercase, then capitalise the first letter
+    # Normalise e.g. "Not formed"/"Not Formed" and "Severely reduced"/"Severely Reduced":
+    # lowercase, then capitalise the first letter
     modify_data(mutate(
       ID = row_number(),
-      conidia_number = str_replace(str_to_lower(conidia_number), "^.", toupper)
+      across(
+        c(conidia_number, ascospore_number),
+        ~ str_replace(str_to_lower(.x), "^.", toupper)
+      )
     )) %>%
     sync_variable_metadata() %>%
     redetect_column_as_id('ID')
