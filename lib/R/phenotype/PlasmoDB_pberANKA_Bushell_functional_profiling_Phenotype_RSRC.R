@@ -41,7 +41,18 @@ wrangle <- function() {
     set_variable_metadata('times_analyzed', display_order=9, display_name = "Times Analyzed", definition = "Times Analyzed") %>%
     set_variable_metadata('construct', display_order=10, display_name = "Targeting Vector", definition = "Targeting Vector") %>%
     set_variable_metadata('notes', display_order=11, display_name = "Notes", definition = "Notes")
-  
+
+  # Order phenotypes by growth, slowest to fastest, with "Insufficient data" last
+  # (default is lexical). Unexpected values go at the end in lexical order, so
+  # they fall back quietly.
+  sortPhenotypes <- function(phenotypes) {
+    growth_order <- c("Essential", "Slow", "Dispensable", "Fast", "Insufficient data")
+    phenotypes[order(match(phenotypes, growth_order), phenotypes)]
+  }
+
+  genePhenotype <- genePhenotype %>%
+    set_variable_vocabulary_order("phenotype", order = sortPhenotypes)
+
   study = study(name="TEMP_STUDY_NAME", genePhenotype)
 
   return(study)
