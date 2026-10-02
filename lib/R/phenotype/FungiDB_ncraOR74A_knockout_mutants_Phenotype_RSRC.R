@@ -15,7 +15,11 @@ wrangle <- function() {
 
   #  deal with the primary Key (gene variable). boilerplate
   genePhenotype <- genePhenotype %>%
-    modify_data(mutate(ID = row_number())) %>%
+    # Normalise "Not formed"/"Not Formed" to "Not formed": lowercase, then capitalise the first letter
+    modify_data(mutate(
+      ID = row_number(),
+      conidia_number = str_replace(str_to_lower(conidia_number), "^.", toupper)
+    )) %>%
     sync_variable_metadata() %>%
     redetect_column_as_id('ID')
 
