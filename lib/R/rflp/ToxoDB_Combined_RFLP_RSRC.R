@@ -153,6 +153,16 @@ wrangle <- function() {
       children = c("SAG1","X5..3..SAG2","alt..SAG2","SAG3","CS3","BTUB","GRA6","c22.8","c29.2","L358","PK1","Apico")
     )
 
+  # Sort genotypes "Undetermined" < "1" < "2" < "10" (default is lexical). The
+  # column stays categorical because of "Undetermined". Other non-integer values
+  # go at the end in lexical order, so unexpected levels fall back quietly.
+  sortGenotypes <- function(genotypes) {
+    genotype_number <- suppressWarnings(as.integer(genotypes))
+    genotypes[order(genotypes != "Undetermined", genotype_number, genotypes)]
+  }
+
+  rflp_entity <- rflp_entity %>%
+    set_variable_vocabulary_order("ToxoDB_Genotype", order = sortGenotypes)
 
   # Set Publication metadata if the column exists
   if ("Publication" %in% names(rflp_entity@data)) {

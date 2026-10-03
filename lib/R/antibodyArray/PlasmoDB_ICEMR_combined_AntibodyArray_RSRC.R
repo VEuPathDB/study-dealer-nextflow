@@ -45,6 +45,40 @@ wrangle <- function() {
       }
     })
 
+  # Standardise capitalisation of first character (e.g. "no"/"No" -> "No")
+  capitalise_first_cols <- c(
+    # yes/no
+    "cerebral", "coma", "fever", "hospitalized", "immune_responses",
+    "parasite_genetics", "severe_anemia",
+    # positive/negative/not done
+    "falciparum", "knowlesi", "malariae", "ovale", "vivax",
+    "microscopy_result", "gametocytes", "rdt_result",
+    # other
+    "pregnancy_status", "sample_origin"
+  )
+
+  sample_entity <- sample_entity %>%
+    modify_data(mutate(across(any_of(capitalise_first_cols), ~ str_replace(.x, "^.", toupper))))
+
+  # Sort "5 days" < "10 days" (default is lexical). Values that don't start
+  # with a number go at the end in lexical order, so unexpected levels fall
+  # back quietly.
+  sortDays <- function(days) {
+    day_number <- suppressWarnings(as.numeric(sub("^(\\d+(\\.\\d+)?).*$", "\\1", days)))
+    days[order(day_number, days)]
+  }
+
+  sample_entity <- sample_entity %>%
+    set_variable_vocabulary_order("fever_duration", order = sortDays)
+
+  # follow_up_day has a single "not applicable" string among integer values, so
+  # it was detected as categorical. Replace it with NA, make the column integer
+  # and redetect it (study-wrangler >= 1.0.52 re-infers data_shape too).
+  # as.integer() warns if any other non-numeric value turns up.
+  sample_entity <- sample_entity %>%
+    modify_data(mutate(follow_up_day = as.integer(na_if(follow_up_day, "not applicable")))) %>%
+    redetect_columns_as_variables("follow_up_day")
+
   # Apply display names and definitions from ontology mapping file
   sample_entity <- applyOntologyMapping(sample_entity, "header_ontology_mapping_deduplicated.txt")
 
@@ -62,7 +96,8 @@ wrangle <- function() {
     set_variable_metadata('gametocyte_density_by_microscope', unit = 'microliter') %>%
     set_variable_metadata('p_falciparum_parasite_density_by_pcr', unit = 'microliter') %>%
     set_variable_metadata('p_falciparum_parasite_density_by_rt_pcr', unit = 'microliter') %>%
-    set_variable_metadata('hemoglobin_level', unit = 'g/dL')
+    set_variable_metadata('hemoglobin_level', unit = 'g/dL') %>%
+    set_variable_metadata('follow_up_day', unit = 'day')
 
                                         # Inspect the sample entity
   message("\nSample entity summary:")
