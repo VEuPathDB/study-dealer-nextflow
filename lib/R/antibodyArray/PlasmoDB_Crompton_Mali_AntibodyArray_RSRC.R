@@ -33,7 +33,8 @@ wrangle <- function() {
     set_variable_metadata('health_status',
                           display_name = "Health Status") %>%
     set_variable_metadata('time_to_onset.days',
-                          display_name = "Time to Onset") %>%
+                          display_name = "Time to Onset",
+                          unit = 'day') %>%
     set_variable_metadata('Collection.date',
                           display_name = "Collection Date") %>%
     set_variable_metadata('specimen',
@@ -68,6 +69,17 @@ wrangle <- function() {
       children = c("Collection.date", "specimen", "technical.replicate")
     )   %>%
     sync_variable_metadata()
+
+  # Sort "Subject 2" < "Subject 10" < "Subject 100" (default is lexical). The IDs
+  # stay categorical. Values that don't end in a number go at the end in lexical
+  # order, so unexpected levels fall back quietly.
+  sortSubjects <- function(subjects) {
+    subject_number <- suppressWarnings(as.integer(sub("^.*?(\\d+)$", "\\1", subjects)))
+    subjects[order(subject_number, subjects)]
+  }
+
+  sample_entity <- sample_entity %>%
+    set_variable_vocabulary_order("Subject.ID", order = sortSubjects)
 
   # Inspect the sample entity
   message("\nSample entity summary:")

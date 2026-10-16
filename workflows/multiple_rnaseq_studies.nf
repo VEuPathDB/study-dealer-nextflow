@@ -2,8 +2,6 @@
 
 nextflow.enable.dsl = 2
 
-import groovy.json.JsonSlurper
-
 include { single_rnaseq_study } from '../subworkflows/single_study'
 
 include { addOrganismPrefixAndFilterRows } from '../modules/utils'
@@ -15,15 +13,15 @@ include { reportStudiesWithoutSampleDetails } from '../modules/utils'
 include { addFileMetadataSampleDetails } from '../modules/utils'
 
 def slurpJson(jsonFilePath) {
-    def jsonSlurper = new JsonSlurper()
+    def jsonSlurper = new groovy.json.JsonSlurper()
     def jsonArray = jsonSlurper.parse(new File(jsonFilePath))
 
     def rv = [:]
 
-    for(obj in jsonArray) {
+    jsonArray.each { obj ->
         def study = obj.get("study");
         def datasets = obj.get("datasets");
-        for(d in datasets) {
+        datasets.each { d ->
             rv.put(d, study)
         }
     }
@@ -33,7 +31,7 @@ def slurpJson(jsonFilePath) {
 def addFileMetadataToCounts(file, datasetToStudyMap) {
 
     // need to grab the datasetName and the organismAbbrev from the file path
-    def matcher = (file.toString() =~ /${params.workflowDataDir}\/(.+?)\/(.+?)\/${params.mode}\/(.+?)\//)
+    def matcher = (file.toString() =~ "${params.workflowDataDir}/(.+?)/(.+?)/${params.mode}/(.+?)/")
 
     def projectName = matcher[0][1];
     def organismAbbrev = matcher[0][2];

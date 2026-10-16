@@ -46,6 +46,18 @@ wrangle <- function() {
     )   %>%
   sync_variable_metadata()
 
+  # Sort ages numerically, "0.67" < "2" < "10" < "21-42" (default is lexical).
+  # A range sorts by its lower bound (the part before the first "-"). Values
+  # that aren't numbers go at the end in lexical order, so unexpected levels
+  # fall back quietly.
+  sortAges <- function(ages) {
+    age_number <- suppressWarnings(as.numeric(sub("-.*$", "", ages)))
+    ages[order(age_number, ages)]
+  }
+
+  sample_entity <- sample_entity %>%
+    set_variable_vocabulary_order("age.years", order=sortAges)
+
   # Inspect the sample entity
   message("\nSample entity summary:")
   inspect(sample_entity)

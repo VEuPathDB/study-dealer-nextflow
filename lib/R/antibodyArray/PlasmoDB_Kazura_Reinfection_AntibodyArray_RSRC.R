@@ -56,8 +56,10 @@ wrangle <- function() {
                           display_name = "Collection Date") %>%
     set_variable_metadata('microscopy_result',
                           display_name = "Asexual Parasites Present (Microscopy)") %>%
+    # Hidden: values are uninterpretable encoded integers (possibly corrupted upstream).
     set_variable_metadata('blood_smear_summary',
-                          display_name = "Blood Smear Summary") %>%
+                          display_name = "Blood Smear Summary",
+                          hidden = list('everywhere')) %>%
     set_variable_metadata('parasite_density_by_microscope_microliter',
                           display_name = "Parasite Density by Microscope (microliter)") %>%
     create_variable_category(
@@ -73,7 +75,7 @@ wrangle <- function() {
   create_variable_category(
       "laboratory.findings",
       display_name = "Laboratory Findings",
-      children = c("microscopy_result", "blood_smear_summary", "parasite_density_by_microscope_microliter")
+      children = c("microscopy_result", "parasite_density_by_microscope_microliter")
     )   %>%
     create_variable_category(
       "sample.collection",
@@ -81,6 +83,20 @@ wrangle <- function() {
       children = c("specimen", "Specimen.collection.date")
     )   %>%
     sync_variable_metadata()
+
+
+  # Sort "week 3" < "week 10" < "week 11" < "week 11+" (default is lexical).
+  # Values that don't start with "week N" go at the end in lexical order, so
+  # unexpected levels fall back quietly.
+  sortWeeks <- function(weeks) {
+    week_number <- suppressWarnings(as.integer(sub("^week (\\d+).*$", "\\1", weeks)))
+    weeks[order(week_number, weeks)]
+  }
+  
+  sample_entity <- sample_entity %>%
+    set_variable_vocabulary_order("end_of_observation_period", order=sortWeeks) %>%
+    set_variable_vocabulary_order("time_to_first_malaria_dx", order=sortWeeks) %>%
+    set_variable_vocabulary_order("time_to_reinfection", order=sortWeeks)
 
   # Inspect the sample entity
   message("\nSample entity summary:")

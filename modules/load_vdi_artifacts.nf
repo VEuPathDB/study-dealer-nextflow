@@ -8,7 +8,7 @@ process loadVdiArtifacts {
 
     tag "plugin"
     
-    maxForks = 5
+    maxForks 5
     
     input:
     tuple val(study), path(installJson), path(cache), val(extDbNames)
