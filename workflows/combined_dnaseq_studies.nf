@@ -17,7 +17,7 @@ include { combined_dnaseq_study } from '../subworkflows/single_study'
 // organism's per-sample alignment stats and hand both to the wrangler.
 
 def keyByProjectAndOrganism(file, root) {
-    def matcher = (file.toString() =~ /${root}\/([^\/]+)\/([^\/]+)\//)
+    def matcher = (file.toString() =~ "${root}/([^/]+)/([^/]+)/")
 
     if(!matcher) {
         throw new IllegalArgumentException("cannot parse project/organismAbbrev out of ${file} (root ${root})")
@@ -37,7 +37,7 @@ def keyByProjectAndOrganism(file, root) {
 // membership is recorded there as the DS_ digest in the dataset_id variable --
 // so the paths are where the load spec has to come from.
 def keyAlignmentStatsFile(file) {
-    def matcher = (file.toString() =~ /${params.workflowDataDir}\/([^\/]+)\/([^\/]+)\/${params.mode}\/([^\/]+)\//)
+    def matcher = (file.toString() =~ "${params.workflowDataDir}/([^/]+)/([^/]+)/${params.mode}/([^/]+)/")
 
     if(!matcher) {
         throw new IllegalArgumentException("cannot parse project/organismAbbrev/datasetName out of ${file}")
