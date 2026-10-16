@@ -14,7 +14,8 @@ The pipeline follows a mode-based architecture where different data types are pr
 - `main.nf`: Main workflow dispatcher that routes execution based on `params.mode`
   - `mode = "rnaseq"`: Processes RNA sequencing studies via `multiple_rnaseq_studies` workflow
   - `mode = "phenotype"`, `antibodyArray`, `cellularLocalization`, `rflp`: Process via `single_study` subworkflow
-  - Additional modes planned: `dnaseq_chipChip`, `dnaseq_chipSeq`, `dnaseq_SNP_CNV`
+  - `mode = "dnaseq"`: One study per reference organism via `combined_dnaseq_studies` workflow
+  - Additional modes planned: `dnaseq_chipChip`, `dnaseq_chipSeq`
 
 ### Workflow Structure
 - `workflows/`: Contains high-level workflow definitions
@@ -37,6 +38,84 @@ The pipeline uses a sophisticated file pattern matching system defined in `nextf
 - Input data organized by: `{projectName}/{organismAbbrev}/{mode}/{datasetName}/`
 - Supports multiple file types: counts files, metadata, WGCNA eigengenes, phenotype data
 - Uses JSON mapping (`multiDatasetStudy.json`) to group datasets into studies for RNA-seq mode
+
+### Key Processing Steps for dnaseq
+
+`dnaseq` differs from every other mode in that the unit of a study is the
+**reference organism**, not the dataset. Any sample aligned to a reference
+genome must be queryable alongside every other sample aligned to it, so all of
+an organism's dnaseq experiments become one study whose variables are the union
+of theirs.
+
+Two inputs, joined on `project` + `organismAbbrev`:
+
+1. `params.sampleDetailsDir/<project>/<organismAbbrev>/entity-sample.{tsv,yaml}` -
+   sample characteristics, already harmonized across that organism's
+   experiments. `study.yaml` in those directories is ignored; this mode builds
+   the study itself.
+2. `params.filePatterns['dnaseq']` - the per-sample `*_alignment_stats.tsv`
+   emitted by the dnaseq workflow, under
+   `<project>/<organismAbbrev>/dnaseq/<datasetName>/dnaseqNextflow/analysisDir/results/<sample>/`.
+
+There is deliberately **no** `multiDatasetStudy.json` equivalent: the directory
+layout is the study grouping, so there is no hand-maintained mapping that can
+drift out of agreement with the data. Adding an organism means adding a
+directory.
+
+The join key is `sample_id`, which is byte-identical to the `sample` column of
+the alignment stats by construction - that is why harmonization never
+"corrected" a workflow-generated sample name, and why a curated display name
+lives in the separate `sample_display_name` variable instead.
+
+**The alignment stats are the authority on which samples exist**, so the two
+kinds of mismatch are handled differently:
+
+| Mismatch | Behaviour |
+|---|---|
+| Sample aligned, no stf row | **Fatal.** The workflow produced data we have no metadata for. |
+| Organism aligned, no stf at all | **Fatal**, same reason. |
+| Sample in the stf, not aligned | Reported, then dropped. |
+| Organism in the stf, none of it aligned | Reported, then skipped. |
+
+The asymmetry exists so a test database holding a subset of the aligned data
+works without ceremony: only the metadata corresponding to the aligned samples
+gets processed. Dropping samples can leave a variable with no values at all (one
+recorded only by experiments absent from the subset) and a category with no
+remaining children, so both are pruned before validation.
+
+Alignment stats become variables on the sample entity (not a child assay
+entity): a study is scoped to one reference organism, so each sample has exactly
+one alignment against it. They are grouped under the `alignment_statistics`
+variable category.
+
+The study is named `${organismAbbrev}_dnaSeqVariations` (e.g.
+`pvinvinckeiCY_dnaSeqVariations`), matching the organism-level extDbRlsSpec the
+dnaseq workflow itself uses for variation data.
+
+The **load spec is not that name**. One study per organism is still derived from
+every dnaseq dataset aligned to that organism, and
+`EDA.StudyExternalDatabaseRelease` is many-to-one with the study, so
+`loadVdiArtifacts` receives every contributing dataset's external database name.
+For dnaseq the dataset name *is* the external database name (the
+`dnaSeqExperimentFrom*` classes in `EbrcModelCommon` register `%DATASET_NAME%`),
+and it is recoverable from the `<datasetName>` element of the alignment stats
+path. The stf files do not carry it - dataset membership is recorded there as the
+`DS_` digest in `dataset_id` - so the paths are the source for the load spec.
+Deriving it from the paths also means the datasets on the spec are exactly the
+datasets that contributed samples, by construction.
+
+```bash
+nextflow run main.nf --mode dnaseq \
+    --workflowDataDir /path/to/workflow/data \
+    --sampleDetailsDir /path/to/sample/details \
+    --dryRunLoad true
+```
+
+`--dryRunLoad true` echoes the `InsertEdaStudyFromArtifacts` command instead of
+running it, so the whole pipeline can be exercised without touching the
+database. To restrict a run to one organism, point `--workflowDataDir` at a
+tree holding only that organism's alignment stats - extra stf directories are
+skipped with a warning, whereas a trimmed sample details tree is fatal by design.
 
 ### Key Processing Steps for RNA-seq
 1. Collect files via glob patterns from `params.filePatterns`
@@ -109,7 +188,9 @@ nextflow run main.nf --gusHomeDir /path/to/gus
 - `mode`: Processing mode (rnaseq, phenotype, etc.) (default: `rnaseq`)
 - `outputDir`: Results output directory (default: `$launchDir/results`)
 - `datasetName`: Filter to specific dataset (default: `""`)
-- `multiDatasetStudies`: JSON file mapping datasets to studies
+- `multiDatasetStudies`: JSON file mapping datasets to studies (rnaseq only)
+- `sampleDetailsDir`: Directory holding sample characteristics (stf) for rnaseq, chipChip and dnaseq (default: `$baseDir/data/sample_details`)
+- `dryRunLoad`: Echo the VDI load command instead of running it (default: `false`)
 - `studyWranglerTag`: Docker image version (default: `1.0.27`)
 
 ### Docker Containers Used
@@ -143,7 +224,7 @@ data/
 │   │   └── rnaseq/
 │   └── pberANKA/
 │       └── phenotype/
-└── rnaseq_sample_reannotation/
+└── sample_details/
     └── multiDatasetStudy.json
 ```
 

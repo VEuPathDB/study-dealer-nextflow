@@ -8,6 +8,8 @@ include { wrangleSingleRnaSeqStudy } from '../modules/wrangle_single_rnaseq_stud
 
 include { wrangleSingleStfSampleStudy } from '../modules/wrangle_single_stf_sample_study'
 
+include { wrangleCombinedDnaseqStudy } from '../modules/wrangle_combined_dnaseq_study'
+
 
 include { loadVdiArtifacts  } from '../modules/load_vdi_artifacts'
 
@@ -42,6 +44,18 @@ workflow single_stf_sample_study {
 
     main:
     artifacts = wrangleSingleStfSampleStudy(obj)
+
+    loadVdiArtifacts(artifacts)
+
+}
+
+
+workflow combined_dnaseq_study {
+    take:
+    obj
+
+    main:
+    artifacts = wrangleCombinedDnaseqStudy(obj)
 
     loadVdiArtifacts(artifacts)
 

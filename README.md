@@ -20,7 +20,121 @@ Two additional modes, `dnaseq_chipSeq` and `dnaseq_SNP_CNV`, are recognized by t
 - Singularity (the default `nextflow.config` includes `conf/singularity.config`; processes run in the `veupathdb/study-wrangler` and `veupathdb/vdi-plugin-wrangler` container images)
 - A GUS config file (for `--gusConfigFile`), needed by the artifact-loading step
 
-## Usage
+### Basic Usage
+
+```bash
+# Run RNA-seq mode (default)
+nextflow run main.nf
+
+# Run phenotype mode
+nextflow run main.nf --mode phenotype
+
+# Process a specific dataset
+nextflow run main.nf --mode phenotype --datasetName "PlasmoDB_Rod_Mal_Phenotype_RSRC"
+
+# Custom output directory
+nextflow run main.nf --outputDir /path/to/results
+```
+
+### Configuration
+
+Ensure your GUS home directory is set and contains `config/gus.config`:
+
+```bash
+nextflow run main.nf --gusHomeDir /path/to/gusHome
+```
+
+The pipeline expects the GUS config file at `{gusHomeDir}/config/gus.config`.
+
+## Processing Modes
+
+### RNA-seq Mode (`--mode rnaseq`)
+
+Processes RNA sequencing studies with support for:
+- EBI RNA-seq count data
+- Standard RNA-seq count matrices
+- WGCNA eigengene data
+- AI-generated sample metadata
+- Multi-organism studies
+
+**Features:**
+- Automatic strandedness detection (sense/antisense/unstranded)
+- Multi-dataset study grouping via JSON configuration
+- Database validation to prevent reprocessing
+
+**Example:**
+```bash
+nextflow run main.nf --mode rnaseq
+```
+
+### Phenotype Mode (`--mode phenotype`)
+
+Processes phenotype datasets using custom R wrangling scripts.
+
+**Example:**
+```bash
+nextflow run main.nf --mode phenotype --datasetName "PlasmoDB_Rod_Mal_Phenotype_RSRC"
+```
+
+### Other Modes
+
+- **Antibody Array** (`--mode antibodyArray`)
+- **Cellular Localization** (`--mode cellularLocalization`)
+- **RFLP** (`--mode rflp`)
+
+All use the same pattern: custom R scripts in `lib/R/{mode}/{DatasetName}.R`
+
+## Configuration Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `mode` | Processing mode (rnaseq, phenotype, etc.) | `rnaseq` |
+| `gusHomeDir` | Path to GUS environment root (must contain config/gus.config) | `/path/to/gusHome` |
+| `workflowDataDir` | Base directory for input data | `$baseDir/data` |
+| `outputDir` | Results output directory | `$launchDir/results` |
+| `datasetName` | Filter to specific dataset | `""` |
+| `multiDatasetStudies` | JSON file for study mapping | `${params.sampleDetailsDir}/multiDatasetStudy.json` |
+| `studyWranglerTag` | Docker image version | `1.0.27` |
+
+## Input Data Organization
+
+The pipeline expects data organized in a specific directory structure:
+
+```
+data/
+└── {projectName}/          # e.g., PlasmoDB, HostDB
+    └── {organismAbbrev}/   # e.g., pfal3D7, hsapREF
+        └── {mode}/         # e.g., rnaseq, phenotype
+            └── {datasetName}/
+                └── {data files}
+```
+
+**Example:**
+```
+data/PlasmoDB/pfal3D7/rnaseq/pfal3D7_Lee_Gambian_ebi_rnaSeq_RSRC/analysis_output/countsForEda_firststrand.txt
+```
+
+## Multi-Dataset Studies (RNA-seq)
+
+For RNA-seq studies spanning multiple organisms, define study groupings in `data/sample_details/multiDatasetStudy.json`:
+
+```json
+[
+  {
+    "study": "HPI_Lee_Gambian",
+    "datasets": [
+      "hsapREF_Lee_Gambian_ebi_rnaSeq_RSRC",
+      "pfal3D7_Lee_Gambian_ebi_rnaSeq_RSRC"
+    ]
+  }
+]
+```
+
+Datasets not in the JSON are processed as individual studies.
+
+## Output Structure
+
+Results are published to `{outputDir}/{study_name}/`:
 
 ```
 nextflow run VEuPathDB/study-dealer-nextflow -r main \
