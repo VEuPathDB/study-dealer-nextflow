@@ -9,7 +9,7 @@ wrangle <- function() {
   genePhenotype = entity_from_file("phenotype_results.txt")
 
   # Skip Sexual_development column
-  genePhenotype <- genePhenotype %>% modify_data(select(-Sexual_Development))
+  genePhenotype <- genePhenotype %>% modify_data(select(-any_of("Sexual_Development")))
 
   # Set meta data for entity
  genePhenotype <- genePhenotype %>% set_entity_metadata(name = "genePhenotypeImageData", display_name = "Phenotype Image Collection", stable_id="GENE_PHENOTYPE_IMAGE_ENTITY", display_name_plural="Gene Phenotype Image Collection")
