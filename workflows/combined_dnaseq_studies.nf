@@ -61,7 +61,9 @@ workflow combined_dnaseq_studies {
         .groupTuple()
 
     // <workflowDataDir>/<project>/<organismAbbrev>/dnaseq/<datasetName>/dnaseqNextflow/analysisDir/results/<sample>/<sample>_alignment_stats.tsv
-    alignmentStats = Channel.fromPath(params.filePatterns[params.mode])
+    // PrunedGlob rather than fromPath: this pattern is rooted at workflowDataDir,
+    // and fromPath would walk every pipeline's work/ tree under it (see lib/PrunedGlob.groovy).
+    alignmentStats = Channel.fromList(PrunedGlob.expand(params.filePatterns[params.mode]))
         .map { file -> keyAlignmentStatsFile(file) }
         .groupTuple(by: 0)
 

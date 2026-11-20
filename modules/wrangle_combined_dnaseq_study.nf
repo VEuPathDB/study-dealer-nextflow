@@ -6,7 +6,7 @@ nextflow.enable.dsl = 2
 process wrangleCombinedDnaseqStudy {
     container "veupathdb/study-wrangler:${params.studyWranglerTag}"
 
-    publishDir { "${params.outputDir}/${study}" }, mode: 'copy'
+    publishDir "${params.outputDir}/${study}", mode: 'copy'
 
     maxForks 4
 
